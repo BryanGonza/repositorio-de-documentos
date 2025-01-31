@@ -8,9 +8,10 @@ export const ms_usuarios = sequelize.define(
         ID_USUARIO: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
+            allowNull: false
         },
-        NUM_IDENTIDAD: {type: DataTypes.INTEGER, unique: true, allowNull: true},
+        NUM_IDENTIDAD: {type: DataTypes.INTEGER, unique: true, allowNull: false},
         ID_CARGO: {type: DataTypes.INTEGER, allowNull: true},
         DIRECCION_1: {type: DataTypes.STRING, allowNull: true},
         DIRECCION_2: {type: DataTypes.STRING, allowNull: true},
@@ -29,6 +30,9 @@ export const ms_usuarios = sequelize.define(
         FECHA_VENCIMIENTO: {type: DataTypes.DATE, allowNull: true},
         CORREO_ELECTRONICO: {type: DataTypes.STRING, unique: true, allowNull: false},
     }, {
-        timestamps: false // Desactivar createdAt y updatedAt 
+        timestamps: false, // Desactivar createdAt y updatedAt 
+        tableName: 'ms_usuarios',
+        freezeTableName: true,
+    
       }
 )

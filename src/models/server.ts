@@ -7,7 +7,6 @@ class Server {
     private port: string;
 
     constructor(){
-
         this.app = express();
         this.port = process.env.Port || '3016';
         this.listen();
@@ -15,7 +14,6 @@ class Server {
         this.router();
         this.DBconex();
        
-
     }
     router(){
         this.app.use(rUser)
@@ -35,10 +33,7 @@ class Server {
         try {
          // await sequelize.authenticate();
          await ms_usuarios.sync();
-         console.log('tabala creada');
-          console.log("Conectado ;)");
-         
-
+         console.log("Conectado ;)");
         } catch (error) {
              console.log("Error de conexion: ", error);
         }

@@ -12,9 +12,10 @@ exports.ms_usuarios = conexion_1.default.define(
     ID_USUARIO: {
         type: sequelize_1.DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
+        allowNull: false
     },
-    NUM_IDENTIDAD: { type: sequelize_1.DataTypes.INTEGER, unique: true, allowNull: true },
+    NUM_IDENTIDAD: { type: sequelize_1.DataTypes.INTEGER, unique: true, allowNull: false },
     ID_CARGO: { type: sequelize_1.DataTypes.INTEGER, allowNull: true },
     DIRECCION_1: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     DIRECCION_2: { type: sequelize_1.DataTypes.STRING, allowNull: true },
@@ -33,5 +34,7 @@ exports.ms_usuarios = conexion_1.default.define(
     FECHA_VENCIMIENTO: { type: sequelize_1.DataTypes.DATE, allowNull: true },
     CORREO_ELECTRONICO: { type: sequelize_1.DataTypes.STRING, unique: true, allowNull: false },
 }, {
-    timestamps: false // Desactivar createdAt y updatedAt 
+    timestamps: false, // Desactivar createdAt y updatedAt 
+    tableName: 'ms_usuarios',
+    freezeTableName: true,
 });

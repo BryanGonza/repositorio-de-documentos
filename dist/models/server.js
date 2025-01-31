@@ -40,7 +40,6 @@ class Server {
             try {
                 // await sequelize.authenticate();
                 yield ms_usuarios_2.ms_usuarios.sync();
-                console.log('tabala creada');
                 console.log("Conectado ;)");
             }
             catch (error) {
