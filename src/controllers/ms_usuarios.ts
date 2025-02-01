@@ -124,7 +124,6 @@ export const login = async (req: Request, res: Response) => {
                 msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
             });
         }
-
         res.json({
             msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
         });
@@ -200,6 +199,7 @@ export const updateUsuario = async (req: Request, res: Response) => {
 
     res.status(200).json({
       msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.`,
+   
     });
   } catch (error) {
     console.error("Error al actualizar el usuario:", error);
