@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUsuario = exports.deleteUsuario = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
+exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const ms_usuarios_1 = require("../models/ms_usuarios");
 const sequelize_1 = require("sequelize");
@@ -81,8 +81,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //jwt
         const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO: CORREO_ELECTRONICO }, process.env.Secret_key || 'Repositorio_Documentos_2025', { expiresIn: '1h' });
         //Respuesta al cliente
-        return res.json({
-            resultado,
+        res.json({
+            success: 'Inicio de secion exitoso',
             token
         });
     }
@@ -151,7 +151,6 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             USUARIO: USUARIO ? USUARIO.toUpperCase() : usuario.USUARIO,
             NOMBRE_USUARIO: NOMBRE_USUARIO ? NOMBRE_USUARIO.toUpperCase() : usuario.NOMBRE_USUARIO,
             ESTADO_USUARIO: ESTADO_USUARIO !== null && ESTADO_USUARIO !== void 0 ? ESTADO_USUARIO : usuario.ESTADO_USUARIO,
-            CONTRASEÑA: nuevaContrasena,
             ID_ROL: ID_ROL !== null && ID_ROL !== void 0 ? ID_ROL : usuario.ID_ROL,
             FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION !== null && FECHA_ULTIMA_CONEXION !== void 0 ? FECHA_ULTIMA_CONEXION : usuario.FECHA_ULTIMA_CONEXION,
             PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS !== null && PREGUNTAS_CONTESTADAS !== void 0 ? PREGUNTAS_CONTESTADAS : usuario.PREGUNTAS_CONTESTADAS,
@@ -173,3 +172,28 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.updateUsuario = updateUsuario;
+//Traer usuario
+const getUsuarioEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({
+                msg: `Debe proporcionar paramentros`,
+            });
+        }
+        const user = yield ms_usuarios_1.ms_usuarios.findOne({ where: { CORREO_ELECTRONICO: email } });
+        if (!email) {
+            return res.status(404).json({
+                msg: `Usuario no encontrado`,
+            });
+        }
+        res.json(user);
+    }
+    catch (error) {
+        console.error("Error buscr usuario: ", error);
+        res.status(500).json({
+            msg: `Error de servidor`
+        });
+    }
+});
+exports.getUsuarioEmail = getUsuarioEmail;

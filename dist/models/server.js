@@ -13,21 +13,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
 const ms_usuarios_1 = __importDefault(require("../routes/ms_usuarios"));
 const ms_usuarios_2 = require("./ms_usuarios");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
         this.port = process.env.Port || '3016';
-        this.listen();
         this.middlewares();
         this.router();
         this.DBconex();
+        this.listen();
     }
     router() {
         this.app.use(ms_usuarios_1.default);
     }
     middlewares() {
+        // Configurar CORS para aceptar solicitudes desde http://localhost:4200
+        this.app.use((0, cors_1.default)({
+            origin: 'http://localhost:4200'
+        }));
+        // Permitir que el servidor entienda el JSON
         this.app.use(express_1.default.json());
     }
     listen() {

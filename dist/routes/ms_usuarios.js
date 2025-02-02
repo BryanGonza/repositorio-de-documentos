@@ -12,4 +12,5 @@ router.post("/api/ms_usuarios/login", ms_usuarios_1.login);
 router.get("/api/ms_usuarios/getUsuarios", validartoken_1.default, ms_usuarios_1.getUsuarios);
 router.delete("/api/ms_usuarios/deleteUsuario", ms_usuarios_1.deleteUsuario);
 router.put("/api/ms_usuarios/updateUsuario", ms_usuarios_1.updateUsuario);
+router.get("/api/ms_usuarios/getUsuarioEmail", ms_usuarios_1.getUsuarioEmail);
 exports.default = router;

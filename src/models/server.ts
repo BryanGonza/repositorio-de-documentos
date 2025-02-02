@@ -1,4 +1,5 @@
 import express, { Application } from 'express';
+import cors from 'cors';
 import rUser from '../routes/ms_usuarios';
 import { ms_usuarios } from './ms_usuarios';
 
@@ -9,20 +10,26 @@ class Server {
     constructor(){
         this.app = express();
         this.port = process.env.Port || '3016';
-        this.listen();
         this.middlewares();
         this.router();
         this.DBconex();
-       
+        this.listen();
     }
     router(){
         this.app.use(rUser)
     }
     
     middlewares(){
-        this.app.use(express.json())
+        // Configurar CORS para aceptar solicitudes desde http://localhost:4200
+        this.app.use(cors({
+            origin: 'http://localhost:4200'
+        }));
+
+        // Permitir que el servidor entienda el JSON
+        this.app.use(express.json());
     }
 
+ 
     listen(){
         this.app.listen(this.port, () => {
             console.log("Se esta jecutando; "+ this.port);

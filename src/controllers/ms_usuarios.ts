@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import bycryp from 'bcrypt'
 import { ms_usuarios } from "../models/ms_usuarios"
-import { Op} from "sequelize"
+import { Op, where} from "sequelize"
 import jwt from "jsonwebtoken"
 import sequelize from "../database/conexion"
 
@@ -91,8 +91,8 @@ export const login = async (req: Request, res: Response) => {
   
   
       //Respuesta al cliente
-      return res.json({
-        resultado,
+        res.json({
+        success:'Inicio de secion exitoso',
         token
       });
 
@@ -186,7 +186,6 @@ export const updateUsuario = async (req: Request, res: Response) => {
       USUARIO: USUARIO ? USUARIO.toUpperCase() : usuario.USUARIO,
       NOMBRE_USUARIO: NOMBRE_USUARIO ? NOMBRE_USUARIO.toUpperCase() : usuario.NOMBRE_USUARIO,
       ESTADO_USUARIO: ESTADO_USUARIO ?? usuario.ESTADO_USUARIO,
-      CONTRASEÑA: nuevaContrasena,
       ID_ROL: ID_ROL ?? usuario.ID_ROL,
       FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION ?? usuario.FECHA_ULTIMA_CONEXION,
       PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS ?? usuario.PREGUNTAS_CONTESTADAS,
@@ -208,3 +207,33 @@ export const updateUsuario = async (req: Request, res: Response) => {
     });
   }
 };
+//Traer usuario
+export const getUsuarioEmail = async (req: Request, res: Response) => {
+  try {
+      const { email } = req.body;
+     
+      if (!email) {
+          return res.status(400).json({
+              msg: `Debe proporcionar paramentros`,
+          });
+      }
+      const user = await ms_usuarios.findOne({ where: { CORREO_ELECTRONICO: email } });
+
+      if (!email) {
+        return res.status(404).json({
+            msg: `Usuario no encontrado`,
+        });
+    }
+    res.json(user)
+  } catch (error) {
+    console.error("Error buscr usuario: ", error);
+    res.status(500).json({
+      msg: `Error de servidor`
+  });
+
+  }
+};
+
+
+
+
