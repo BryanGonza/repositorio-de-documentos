@@ -12,19 +12,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
+exports.resetPassword = exports.requestPasswordReset = exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const ms_usuarios_1 = require("../models/ms_usuarios");
 const sequelize_1 = require("sequelize");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const conexion_1 = __importDefault(require("../database/conexion"));
-//Registrar un usuario 
+const emailService_1 = require("../controllers/emailService");
+//Registrar un usuario
 const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { ID_USUARIO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, FECHA_CREACION, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO } = req.body;
-    const user = yield ms_usuarios_1.ms_usuarios.findOne({ where: { [sequelize_1.Op.or]: { CORREO_ELECTRONICO: CORREO_ELECTRONICO, NUM_IDENTIDAD: NUM_IDENTIDAD } } });
+    const { ID_USUARIO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, FECHA_CREACION, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
+    const user = yield ms_usuarios_1.ms_usuarios.findOne({
+        where: {
+            [sequelize_1.Op.or]: {
+                CORREO_ELECTRONICO: CORREO_ELECTRONICO,
+                NUM_IDENTIDAD: NUM_IDENTIDAD,
+            },
+        },
+    });
     if (user) {
         return res.status(400).json({
-            msg: `Ya existe un usuario con email => ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`
+            msg: `Ya existe un usuario con email => ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
         });
     }
     // console.log("Estoy aqui...");
@@ -34,10 +42,10 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             ID_USUARIO: ID_USUARIO,
             NUM_IDENTIDAD: NUM_IDENTIDAD,
             ID_CARGO: ID_CARGO,
-            DIRECCION_1: DIRECCION_1.toUpperCase(),
-            DIRECCION_2: DIRECCION_2.toUpperCase(),
-            USUARIO: USUARIO.toUpperCase(),
-            NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
+            DIRECCION_1: DIRECCION_1,
+            DIRECCION_2: DIRECCION_2,
+            USUARIO: USUARIO,
+            NOMBRE_USUARIO: NOMBRE_USUARIO,
             ESTADO_USUARIO: ESTADO_USUARIO,
             CONTRASEÑA: CONTRASEÑA,
             ID_ROL: ID_ROL,
@@ -52,49 +60,49 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             CORREO_ELECTRONICO: CORREO_ELECTRONICO,
         });
         res.json({
-            msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`
+            msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
         });
     }
     catch (error) {
         res.status(400).json({
-            msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`
+            msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
         });
     }
 });
 exports.registrerUser = registrerUser;
-//Get para traer todos los usuarios 
+//Get para traer todos los usuarios
 const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const ListUsuarios = yield ms_usuarios_1.ms_usuarios.findAll();
     res.json({ ListUsuarios });
 });
 exports.getUsuarios = getUsuarios;
-//Login de Usuario 
+//Login de Usuario
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
     try {
-        const [resultado] = yield conexion_1.default.query('CALL ValidarUsuario(:p_usuario, :p_contrasena);', {
+        const [resultado] = yield conexion_1.default.query("CALL ValidarUsuario(:p_usuario, :p_contrasena);", {
             replacements: {
                 p_usuario: CORREO_ELECTRONICO,
-                p_contrasena: CONTRASEÑA
-            }
+                p_contrasena: CONTRASEÑA,
+            },
         });
         //jwt
-        const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO: CORREO_ELECTRONICO }, process.env.Secret_key || 'Repositorio_Documentos_2025', { expiresIn: '1h' });
+        const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO: CORREO_ELECTRONICO }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
         //Respuesta al cliente
-        res.json({
-            success: 'Inicio de secion exitoso',
-            token
+        return res.json({
+            success: "Inicio de secion exitoso",
+            token,
         });
     }
     catch (error) {
-        if (error.parent && error.parent.sqlState === '45000') {
+        if (error.parent && error.parent.sqlState === "45000") {
             return res.status(400).json({
-                msg: error.parent.sqlMessage || 'Error en el login'
+                msg: error.parent.sqlMessage || "Error en el login",
             });
         }
-        console.error('Error: ', error);
+        console.error("Error: ", error);
         return res.status(500).json({
-            msg: 'Error del servidor'
+            msg: "Error del servidor",
         });
     }
 });
@@ -116,9 +124,9 @@ const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (error) {
-        console.error('Error al eliminar el usuario:', error);
+        console.error("Error al eliminar el usuario:", error);
         res.status(500).json({
-            msg: 'Error al eliminar el usuario.',
+            msg: "Error al eliminar el usuario.",
         });
     }
 });
@@ -136,20 +144,26 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         let nuevaContrasena = usuario.CONTRASEÑA;
         if (CONTRASEÑA) {
-            nuevaContrasena = (CONTRASEÑA);
+            nuevaContrasena = CONTRASEÑA;
         }
-        // Para despues incriptar contraseña en caso de que se actualice 
+        // Para despues incriptar contraseña en caso de que se actualice
         // if (CONTRASEÑA) {
         //   nuevaContrasena = await bycryp.hash(CONTRASEÑA, 10);
         // }
-        // actualizar los campos que vienen en el body 
+        // actualizar los campos que vienen en el body
         yield usuario.update({
             NUM_IDENTIDAD: NUM_IDENTIDAD !== null && NUM_IDENTIDAD !== void 0 ? NUM_IDENTIDAD : usuario.NUM_IDENTIDAD,
             ID_CARGO: ID_CARGO !== null && ID_CARGO !== void 0 ? ID_CARGO : usuario.ID_CARGO,
-            DIRECCION_1: DIRECCION_1 ? DIRECCION_1.toUpperCase() : usuario.DIRECCION_1,
-            DIRECCION_2: DIRECCION_2 ? DIRECCION_2.toUpperCase() : usuario.DIRECCION_2,
+            DIRECCION_1: DIRECCION_1
+                ? DIRECCION_1.toUpperCase()
+                : usuario.DIRECCION_1,
+            DIRECCION_2: DIRECCION_2
+                ? DIRECCION_2.toUpperCase()
+                : usuario.DIRECCION_2,
             USUARIO: USUARIO ? USUARIO.toUpperCase() : usuario.USUARIO,
-            NOMBRE_USUARIO: NOMBRE_USUARIO ? NOMBRE_USUARIO.toUpperCase() : usuario.NOMBRE_USUARIO,
+            NOMBRE_USUARIO: NOMBRE_USUARIO
+                ? NOMBRE_USUARIO.toUpperCase()
+                : usuario.NOMBRE_USUARIO,
             ESTADO_USUARIO: ESTADO_USUARIO !== null && ESTADO_USUARIO !== void 0 ? ESTADO_USUARIO : usuario.ESTADO_USUARIO,
             ID_ROL: ID_ROL !== null && ID_ROL !== void 0 ? ID_ROL : usuario.ID_ROL,
             FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION !== null && FECHA_ULTIMA_CONEXION !== void 0 ? FECHA_ULTIMA_CONEXION : usuario.FECHA_ULTIMA_CONEXION,
@@ -181,7 +195,9 @@ const getUsuarioEmail = (req, res) => __awaiter(void 0, void 0, void 0, function
                 msg: `Debe proporcionar paramentros`,
             });
         }
-        const user = yield ms_usuarios_1.ms_usuarios.findOne({ where: { CORREO_ELECTRONICO: email } });
+        const user = yield ms_usuarios_1.ms_usuarios.findOne({
+            where: { CORREO_ELECTRONICO: email },
+        });
         if (!email) {
             return res.status(404).json({
                 msg: `Usuario no encontrado`,
@@ -192,8 +208,106 @@ const getUsuarioEmail = (req, res) => __awaiter(void 0, void 0, void 0, function
     catch (error) {
         console.error("Error buscr usuario: ", error);
         res.status(500).json({
-            msg: `Error de servidor`
+            msg: `Error de servidor`,
         });
     }
 });
 exports.getUsuarioEmail = getUsuarioEmail;
+// Genrar un código
+function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { correoE } = req.body;
+        if (!correoE) {
+            return res.status(400).json({
+                msg: "El campo 'email' es requerido.",
+            });
+        }
+        const user = yield ms_usuarios_1.ms_usuarios.findOne({
+            where: { CORREO_ELECTRONICO: correoE },
+        });
+        if (!user) {
+            return res.status(404).json({
+                msg: "No existe un usuario con ese correo.",
+            });
+        }
+        // Generar el código y fecha de expiración 
+        const code = generateCode();
+        const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        yield user.update({
+            resetCode: code,
+            resetCodeExpires: expires,
+        });
+        // Enviar el correo con Nodemailer
+        yield emailService_1.transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: correoE,
+            subject: "Recuperación de contraseña",
+            text: `Tu código de recuperación es: ${code}. Expira en 15 minutos.`
+        });
+        return res.json({
+            msg: "Código de recuperación enviado al correo.",
+        });
+    }
+    catch (error) {
+        console.error("Error en recuperacion de contraseña:", error);
+        return res.status(500).json({
+            msg: "Error del servidor al solicitar recuperación.",
+            error
+        });
+    }
+});
+exports.requestPasswordReset = requestPasswordReset;
+const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { correoE, code, newContrasena } = req.body;
+        if (!correoE || !code || !newContrasena) {
+            return res.status(400).json({
+                msg: "correo, codigo, y neueva Contraseña son requeridos."
+            });
+        }
+        // Buscar usuario por correo
+        const user = yield ms_usuarios_1.ms_usuarios.findOne({
+            where: { CORREO_ELECTRONICO: correoE },
+        });
+        if (!user) {
+            return res.status(404).json({
+                msg: "Usuario no encontrado."
+            });
+        }
+        // Verificar que el código coincida
+        if (user.getDataValue("resetCode") !== code) {
+            return res.status(400).json({
+                msg: "El código es inválido."
+            });
+        }
+        // Verificar que no esté expirado
+        const expires = user.getDataValue("resetCodeExpires");
+        if (!expires || expires.getTime() < Date.now()) {
+            return res.status(400).json({
+                msg: "El código ha expirado, solicita uno nuevo."
+            });
+        }
+        // // Hashear la nueva contraseña
+        // const hashedPassword = await bycryp.hash(newPassword, 10);
+        // Actualizar la contraseña y limpiar el code
+        yield user.update({
+            CONTRASEÑA: newContrasena,
+            resetCode: null,
+            resetCodeExpires: null,
+        });
+        return res.json({
+            msg: "Contraseña restablecida correctamente."
+        });
+    }
+    catch (error) {
+        console.error("Error en resetPassword:", error);
+        return res.status(500).json({
+            msg: "Error del servidor al restablecer la contraseña.",
+            error
+        });
+    }
+});
+exports.resetPassword = resetPassword;

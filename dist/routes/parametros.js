@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const parametros_1 = require("../controllers/parametros");
+// import validarToken from "../routes/validartoken";
+const router = (0, express_1.Router)();
+router.post("/api/parametros/CrearParametro", parametros_1.CrearParametro);
+router.get("/api/parametros/getParametros", parametros_1.getParametros);
+router.delete("/api/parametros/deleteParametro", parametros_1.deleteParametro);
+router.put("/api/parametros/updateParametros", parametros_1.updateParametros);
+exports.default = router;
