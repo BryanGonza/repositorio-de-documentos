@@ -20,7 +20,7 @@ router.post("/api/ms_usuarios/login", login);
 router.get("/api/ms_usuarios/getUsuarios", getUsuarios);
 router.delete("/api/ms_usuarios/deleteUsuario", deleteUsuario);
 router.put("/api/ms_usuarios/updateUsuario", updateUsuario);
-router.get("/api/ms_usuarios/getUsuarioEmail", getUsuarioEmail);
+router.post("/api/ms_usuarios/getUsuarioEmail", getUsuarioEmail);
 
 
 // Rutas para recuperación de contraseña
