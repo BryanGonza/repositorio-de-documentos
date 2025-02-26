@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const objetos_1 = require("../controllers/objetos");
+const router = (0, express_1.Router)();
+router.post("/api/objetos/createObjetos", objetos_1.createObjetos);
+router.get("/api/objetos/getObjetos", objetos_1.getObjetos);
+router.put("/api/objetos/updateObjetos", objetos_1.updateObjetos);
+router.delete("/api/objetos/deleteObjetos", objetos_1.deleteObjetos);
+exports.default = router;

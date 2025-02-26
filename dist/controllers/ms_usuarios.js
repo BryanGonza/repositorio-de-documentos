@@ -21,18 +21,18 @@ const conexion_1 = __importDefault(require("../database/conexion"));
 const emailService_1 = require("../controllers/emailService");
 //Registrar un usuario
 const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { ID_USUARIO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, FECHA_CREACION, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
+    const { ID_USUARIO, ID_DEPARTAMENTO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
     const user = yield ms_usuarios_1.ms_usuarios.findOne({
         where: {
             [sequelize_1.Op.or]: {
                 CORREO_ELECTRONICO: CORREO_ELECTRONICO,
-                NUM_IDENTIDAD: NUM_IDENTIDAD,
+                NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
             },
         },
     });
     if (user) {
         return res.status(400).json({
-            msg: `Ya existe un usuario con email => ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
+            msg: `Ya existe un usuario con email ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
         });
     }
     // console.log("Estoy aqui...");
@@ -40,7 +40,8 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         yield ms_usuarios_1.ms_usuarios.create({
             ID_USUARIO: ID_USUARIO,
-            NUM_IDENTIDAD: NUM_IDENTIDAD,
+            ID_DEPARTAMENTO: ID_DEPARTAMENTO,
+            NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
             ID_CARGO: ID_CARGO,
             DIRECCION_1: DIRECCION_1,
             DIRECCION_2: DIRECCION_2,
@@ -51,7 +52,7 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             ID_ROL: ID_ROL,
             FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
             PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS,
-            FECHA_CREACION: FECHA_CREACION,
+            FECHA_CREACION: new Date(),
             CREADO_POR: CREADO_POR,
             FECHA_MODIFICACION: FECHA_MODIFICACION,
             MODIFICADO_POR: MODIFICADO_POR,

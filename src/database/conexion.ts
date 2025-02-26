@@ -1,6 +1,6 @@
 const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize(
-  "repositorio_documentos",
+  "repositorio_documentos2_0",
   "root",
   "contrasena123",
   {

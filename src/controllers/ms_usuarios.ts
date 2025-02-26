@@ -10,6 +10,7 @@ import { transporter } from "../controllers/emailService";
 export const registrerUser = async (req: Request, res: Response) => {
   const {
     ID_USUARIO,
+    ID_DEPARTAMENTO,
     NUM_IDENTIDAD,
     ID_CARGO,
     DIRECCION_1,
@@ -21,7 +22,6 @@ export const registrerUser = async (req: Request, res: Response) => {
     ID_ROL,
     FECHA_ULTIMA_CONEXION,
     PREGUNTAS_CONTESTADAS,
-    FECHA_CREACION,
     CREADO_POR,
     FECHA_MODIFICACION,
     MODIFICADO_POR,
@@ -34,14 +34,14 @@ export const registrerUser = async (req: Request, res: Response) => {
     where: {
       [Op.or]: {
         CORREO_ELECTRONICO: CORREO_ELECTRONICO,
-        NUM_IDENTIDAD: NUM_IDENTIDAD,
+        NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
       },
     },
   });
 
   if (user) {
     return res.status(400).json({
-      msg: `Ya existe un usuario con email => ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
+      msg: `Ya existe un usuario con email ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
     });
   }
 
@@ -51,7 +51,8 @@ export const registrerUser = async (req: Request, res: Response) => {
   try {
     await ms_usuarios.create({
       ID_USUARIO: ID_USUARIO,
-      NUM_IDENTIDAD: NUM_IDENTIDAD,
+      ID_DEPARTAMENTO: ID_DEPARTAMENTO,
+      NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
       ID_CARGO: ID_CARGO,
       DIRECCION_1: DIRECCION_1,
       DIRECCION_2: DIRECCION_2,
@@ -62,7 +63,7 @@ export const registrerUser = async (req: Request, res: Response) => {
       ID_ROL: ID_ROL,
       FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
       PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS,
-      FECHA_CREACION: FECHA_CREACION,
+      FECHA_CREACION: new Date(),
       CREADO_POR: CREADO_POR,
       FECHA_MODIFICACION: FECHA_MODIFICACION,
       MODIFICADO_POR: MODIFICADO_POR,
@@ -77,6 +78,7 @@ export const registrerUser = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(400).json({
       msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
+      
     });
   }
 };

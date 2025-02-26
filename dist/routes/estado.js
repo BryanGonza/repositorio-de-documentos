@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const estado_1 = require("../controllers/estado");
+const router = (0, express_1.Router)();
+router.post("/api/estado/createEstado", estado_1.createEstado);
+router.get("/api/estado/getEstado", estado_1.getEstado);
+router.put("/api/estado/updateEstado", estado_1.updateEstado);
+router.delete("/api/estado/deleteEstado", estado_1.deleteEstado);
+exports.default = router;
