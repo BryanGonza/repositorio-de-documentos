@@ -301,7 +301,32 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       from: process.env.EMAIL_USER, 
       to: correoE,
       subject: "Recuperación de contraseña",
-      text: `Tu código de recuperación es: ${code}. Expira en 15 minutos.`
+      html: `<p>Estimado/a <strong>${user.NOMBRE_USUARIO}</strong>,</p>
+    
+      <p>Gracias por utilizar los servicios de la <strong>Universidad Nacional Autónoma de Honduras</strong>.</p>
+      
+      <p>Para continuar con el proceso de recuperación de su contraseña, por favor siga los siguientes pasos:</p>
+      
+      <ol>
+        <li>Introduzca el siguiente código de recuperación en la página correspondiente:</li>
+        <p><strong>Código de Recuperación: ${code}</strong></p>
+        <li>Haga clic en el siguiente enlace para acceder a la página de verificación:<br>
+        <a href="http://localhost:4200/ResetContrasena">http://localhost:4200/ResetContrasena</a></li>
+      </ol>
+      
+      <p>Tenga en cuenta que este <strong>código expira en 15 minutos.</strong></p>
+      
+      <p>Si no ha solicitado la recuperación de su contraseña, por favor ignore este mensaje.</p>
+      
+      <p>Atentamente,<br>
+      <strong>Universidad Nacional Autónoma de Honduras</strong></p>
+      
+         
+      <div style="background-color: #333; color: #fff; text-align: center; padding: 10px 0; position: fixed; bottom: 0; width: 100%;">
+        
+        <p>© Derechos reservados Universidad Nacional Autónoma de Honduras 2025 Desarrollado por TechDesign.</p>
+        <img src="https://eslared.net/sites/default/files/2020-06/unah_logo.png" alt="Logo UNAH" style="width: 50px; height: auto;">
+  </div>`
     });
 
     return res.json({
