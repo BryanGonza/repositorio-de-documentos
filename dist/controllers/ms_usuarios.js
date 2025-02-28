@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -37,18 +48,19 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     // console.log("Estoy aqui...");
     const CONTRASEÑAHash = yield bcrypt_1.default.hash(CONTRASEÑA, 10);
+    console.log("Datos recibidos:", req.body);
     try {
         yield ms_usuarios_1.ms_usuarios.create({
             ID_USUARIO: ID_USUARIO,
             ID_DEPARTAMENTO: ID_DEPARTAMENTO,
-            NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
+            NUM_IDENTIDAD: NUM_IDENTIDAD,
             ID_CARGO: ID_CARGO,
             DIRECCION_1: DIRECCION_1,
             DIRECCION_2: DIRECCION_2,
-            USUARIO: USUARIO,
-            NOMBRE_USUARIO: NOMBRE_USUARIO,
+            USUARIO: USUARIO.toUpperCase(),
+            NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
             ESTADO_USUARIO: ESTADO_USUARIO,
-            CONTRASEÑA: CONTRASEÑA,
+            CONTRASEÑA: CONTRASEÑA.toUpperCase(),
             ID_ROL: ID_ROL,
             FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
             PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS,
@@ -58,14 +70,15 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             MODIFICADO_POR: MODIFICADO_POR,
             PRIMER_INGRESO: PRIMER_INGRESO,
             FECHA_VENCIMIENTO: FECHA_VENCIMIENTO,
-            CORREO_ELECTRONICO: CORREO_ELECTRONICO,
+            CORREO_ELECTRONICO: CORREO_ELECTRONICO.toUpperCase(),
         });
         res.json({
             msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
         });
     }
     catch (error) {
-        res.status(400).json({
+        console.error("Error en la creación del usuario:", error);
+        res.status(500).json({
             msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
         });
     }
@@ -81,17 +94,15 @@ exports.getUsuarios = getUsuarios;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
     try {
-        const [resultado] = yield conexion_1.default.query("CALL ValidarUsuario(:p_usuario, :p_contrasena);", {
-            replacements: {
-                p_usuario: CORREO_ELECTRONICO,
-                p_contrasena: CONTRASEÑA,
-            },
+        const [resultado] = yield conexion_1.default.query("CALL ValidarUsuario(?, ?);", {
+            replacements: [CORREO_ELECTRONICO, CONTRASEÑA], // Pasamos los valores en un array
         });
         //jwt
         const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO: CORREO_ELECTRONICO }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
         //Respuesta al cliente
         return res.json({
-            success: "Inicio de secion exitoso",
+            success: true,
+            msg: (resultado === null || resultado === void 0 ? void 0 : resultado.Mensaje) || "Inicio de sesión exitoso",
             token,
         });
     }
@@ -134,56 +145,37 @@ const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.deleteUsuario = deleteUsuario;
 //Actualizar usuarios ;)
 const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { ID_USUARIO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
+    const _a = req.body, { ID_USUARIO, CONTRASEÑA } = _a, campos = __rest(_a, ["ID_USUARIO", "CONTRASE\u00D1A"]);
     try {
-        // Buscar el usuario por su id
+        // Buscar usuario
         const usuario = yield ms_usuarios_1.ms_usuarios.findOne({ where: { ID_USUARIO } });
         if (!usuario) {
-            return res.status(404).json({
-                msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
-            });
+            return res.status(404).json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
         }
-        let nuevaContrasena = usuario.CONTRASEÑA;
+        // Si se envía una nueva contraseña, encriptarla
         if (CONTRASEÑA) {
-            nuevaContrasena = CONTRASEÑA;
+            campos.CONTRASEÑA = yield CONTRASEÑA;
         }
-        // Para despues incriptar contraseña en caso de que se actualice
-        // if (CONTRASEÑA) {
-        //   nuevaContrasena = await bycryp.hash(CONTRASEÑA, 10);
-        // }
-        // actualizar los campos que vienen en el body
-        yield usuario.update({
-            NUM_IDENTIDAD: NUM_IDENTIDAD !== null && NUM_IDENTIDAD !== void 0 ? NUM_IDENTIDAD : usuario.NUM_IDENTIDAD,
-            ID_CARGO: ID_CARGO !== null && ID_CARGO !== void 0 ? ID_CARGO : usuario.ID_CARGO,
-            DIRECCION_1: DIRECCION_1
-                ? DIRECCION_1.toUpperCase()
-                : usuario.DIRECCION_1,
-            DIRECCION_2: DIRECCION_2
-                ? DIRECCION_2.toUpperCase()
-                : usuario.DIRECCION_2,
-            USUARIO: USUARIO ? USUARIO.toUpperCase() : usuario.USUARIO,
-            NOMBRE_USUARIO: NOMBRE_USUARIO
-                ? NOMBRE_USUARIO.toUpperCase()
-                : usuario.NOMBRE_USUARIO,
-            ESTADO_USUARIO: ESTADO_USUARIO !== null && ESTADO_USUARIO !== void 0 ? ESTADO_USUARIO : usuario.ESTADO_USUARIO,
-            ID_ROL: ID_ROL !== null && ID_ROL !== void 0 ? ID_ROL : usuario.ID_ROL,
-            FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION !== null && FECHA_ULTIMA_CONEXION !== void 0 ? FECHA_ULTIMA_CONEXION : usuario.FECHA_ULTIMA_CONEXION,
-            PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS !== null && PREGUNTAS_CONTESTADAS !== void 0 ? PREGUNTAS_CONTESTADAS : usuario.PREGUNTAS_CONTESTADAS,
-            FECHA_MODIFICACION: FECHA_MODIFICACION !== null && FECHA_MODIFICACION !== void 0 ? FECHA_MODIFICACION : new Date(),
-            MODIFICADO_POR: MODIFICADO_POR !== null && MODIFICADO_POR !== void 0 ? MODIFICADO_POR : usuario.MODIFICADO_POR,
-            PRIMER_INGRESO: PRIMER_INGRESO !== null && PRIMER_INGRESO !== void 0 ? PRIMER_INGRESO : usuario.PRIMER_INGRESO,
-            FECHA_VENCIMIENTO: FECHA_VENCIMIENTO !== null && FECHA_VENCIMIENTO !== void 0 ? FECHA_VENCIMIENTO : usuario.FECHA_VENCIMIENTO,
-            CORREO_ELECTRONICO: CORREO_ELECTRONICO !== null && CORREO_ELECTRONICO !== void 0 ? CORREO_ELECTRONICO : usuario.CORREO_ELECTRONICO,
-        });
-        res.status(200).json({
-            msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.`,
-        });
+        // Convertir valores a mayúsculas donde corresponda
+        if (campos.USUARIO)
+            campos.USUARIO = campos.USUARIO.toUpperCase();
+        if (campos.NOMBRE_USUARIO)
+            campos.NOMBRE_USUARIO = campos.NOMBRE_USUARIO.toUpperCase();
+        if (campos.CORREO_ELECTRONICO)
+            campos.CORREO_ELECTRONICO = campos.CORREO_ELECTRONICO.toUpperCase();
+        if (campos.DIRECCION_1)
+            campos.DIRECCION_1 = campos.DIRECCION_1.toUpperCase();
+        if (campos.DIRECCION_2)
+            campos.DIRECCION_2 = campos.DIRECCION_2.toUpperCase();
+        // Si hay cambios, actualiza el usuario
+        if (Object.keys(campos).length > 0) {
+            yield usuario.update(campos);
+        }
+        res.status(200).json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
     }
     catch (error) {
         console.error("Error al actualizar el usuario:", error);
-        res.status(500).json({
-            msg: "Error al actualizar el usuario.",
-        });
+        res.status(500).json({ msg: "Error al actualizar el usuario." });
     }
 });
 exports.updateUsuario = updateUsuario;
@@ -246,7 +238,32 @@ const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, fun
             from: process.env.EMAIL_USER,
             to: correoE,
             subject: "Recuperación de contraseña",
-            text: `Tu código de recuperación es: ${code}. Expira en 15 minutos.`
+            html: `<p>Estimado/a <strong>${user.NOMBRE_USUARIO}</strong>,</p>
+    
+      <p>Gracias por utilizar los servicios de la <strong>Universidad Nacional Autónoma de Honduras</strong>.</p>
+      
+      <p>Para continuar con el proceso de recuperación de su contraseña, por favor siga los siguientes pasos:</p>
+      
+      <ol>
+        <li>Introduzca el siguiente código de recuperación en la página correspondiente:</li>
+        <p><strong>Código de Recuperación: ${code}</strong></p>
+        <li>Haga clic en el siguiente enlace para acceder a la página de verificación:<br>
+        <a href="http://localhost:4200/ResetContrasena">http://localhost:4200/ResetContrasena</a></li>
+      </ol>
+      
+      <p>Tenga en cuenta que este <strong>código expira en 15 minutos.</strong></p>
+      
+      <p>Si no ha solicitado la recuperación de su contraseña, por favor ignore este mensaje.</p>
+      
+      <p>Atentamente,<br>
+      <strong>Universidad Nacional Autónoma de Honduras</strong></p>
+      
+         
+      <div style="background-color: #333; color: #fff; text-align: center; padding: 10px 0; position: fixed; bottom: 0; width: 100%;">
+        
+        <p>© Derechos reservados Universidad Nacional Autónoma de Honduras 2025 Desarrollado por TechDesign.</p>
+        <img src="https://eslared.net/sites/default/files/2020-06/unah_logo.png" alt="Logo UNAH" style="width: 50px; height: auto;">
+  </div>`
         });
         return res.json({
             msg: "Código de recuperación enviado al correo.",

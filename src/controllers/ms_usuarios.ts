@@ -29,7 +29,7 @@ export const registrerUser = async (req: Request, res: Response) => {
     FECHA_VENCIMIENTO,
     CORREO_ELECTRONICO,
   } = req.body;
-
+ 
   const user = await ms_usuarios.findOne({
     where: {
       [Op.or]: {
@@ -47,19 +47,19 @@ export const registrerUser = async (req: Request, res: Response) => {
 
   // console.log("Estoy aqui...");
   const CONTRASEÑAHash = await bycryp.hash(CONTRASEÑA, 10);
-
+  console.log("Datos recibidos:", req.body);
   try {
     await ms_usuarios.create({
       ID_USUARIO: ID_USUARIO,
       ID_DEPARTAMENTO: ID_DEPARTAMENTO,
-      NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
+      NUM_IDENTIDAD: NUM_IDENTIDAD,
       ID_CARGO: ID_CARGO,
       DIRECCION_1: DIRECCION_1,
       DIRECCION_2: DIRECCION_2,
-      USUARIO: USUARIO,
-      NOMBRE_USUARIO: NOMBRE_USUARIO,
+      USUARIO: USUARIO.toUpperCase(),
+      NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
       ESTADO_USUARIO: ESTADO_USUARIO,
-      CONTRASEÑA: CONTRASEÑA,
+      CONTRASEÑA: CONTRASEÑA.toUpperCase(),
       ID_ROL: ID_ROL,
       FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
       PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS,
@@ -69,18 +69,24 @@ export const registrerUser = async (req: Request, res: Response) => {
       MODIFICADO_POR: MODIFICADO_POR,
       PRIMER_INGRESO: PRIMER_INGRESO,
       FECHA_VENCIMIENTO: FECHA_VENCIMIENTO,
-      CORREO_ELECTRONICO: CORREO_ELECTRONICO,
+      CORREO_ELECTRONICO: CORREO_ELECTRONICO.toUpperCase(),
     });
+    
+
 
     res.json({
       msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
     });
-  } catch (error) {
-    res.status(400).json({
+  } catch (error: any) {
+    console.error("Error en la creación del usuario:", error);
+    res.status(500).json({
       msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
       
     });
   }
+  
+  
+  
 };
 
 //Get para traer todos los usuarios
@@ -94,13 +100,10 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const [resultado] = await sequelize.query(
-      "CALL ValidarUsuario(:p_usuario, :p_contrasena);",
-      {
-        replacements: {
-          p_usuario: CORREO_ELECTRONICO,
-          p_contrasena: CONTRASEÑA,
-        },
-      }
+    "CALL ValidarUsuario(?, ?);", 
+  {
+    replacements: [CORREO_ELECTRONICO, CONTRASEÑA], // Pasamos los valores en un array
+  }
     );
 
     //jwt
@@ -112,7 +115,8 @@ export const login = async (req: Request, res: Response) => {
 
     //Respuesta al cliente
     return res.json({
-      success: "Inicio de secion exitoso",
+      success: true,
+      msg: resultado?.Mensaje || "Inicio de sesión exitoso",
       token,
     });
   } catch (error: any) {
@@ -155,80 +159,36 @@ export const deleteUsuario = async (req: Request, res: Response) => {
 
 //Actualizar usuarios ;)
 export const updateUsuario = async (req: Request, res: Response) => {
-  const {
-    ID_USUARIO,
-    NUM_IDENTIDAD,
-    ID_CARGO,
-    DIRECCION_1,
-    DIRECCION_2,
-    USUARIO,
-    NOMBRE_USUARIO,
-    ESTADO_USUARIO,
-    CONTRASEÑA,
-    ID_ROL,
-    FECHA_ULTIMA_CONEXION,
-    PREGUNTAS_CONTESTADAS,
-    FECHA_MODIFICACION,
-    MODIFICADO_POR,
-    PRIMER_INGRESO,
-    FECHA_VENCIMIENTO,
-    CORREO_ELECTRONICO,
-  } = req.body;
+  const { ID_USUARIO, CONTRASEÑA, ...campos } = req.body;
 
   try {
-    // Buscar el usuario por su id
+    // Buscar usuario
     const usuario = await ms_usuarios.findOne({ where: { ID_USUARIO } });
-
     if (!usuario) {
-      return res.status(404).json({
-        msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
-      });
+      return res.status(404).json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
     }
 
-    let nuevaContrasena = usuario.CONTRASEÑA;
+    // Si se envía una nueva contraseña, encriptarla
     if (CONTRASEÑA) {
-      nuevaContrasena = CONTRASEÑA;
+      campos.CONTRASEÑA = await CONTRASEÑA;
     }
-    // Para despues incriptar contraseña en caso de que se actualice
-    // if (CONTRASEÑA) {
-    //   nuevaContrasena = await bycryp.hash(CONTRASEÑA, 10);
-    // }
 
-    // actualizar los campos que vienen en el body
-    await usuario.update({
-      NUM_IDENTIDAD: NUM_IDENTIDAD ?? usuario.NUM_IDENTIDAD,
-      ID_CARGO: ID_CARGO ?? usuario.ID_CARGO,
-      DIRECCION_1: DIRECCION_1
-        ? DIRECCION_1.toUpperCase()
-        : usuario.DIRECCION_1,
-      DIRECCION_2: DIRECCION_2
-        ? DIRECCION_2.toUpperCase()
-        : usuario.DIRECCION_2,
-      USUARIO: USUARIO ? USUARIO.toUpperCase() : usuario.USUARIO,
-      NOMBRE_USUARIO: NOMBRE_USUARIO
-        ? NOMBRE_USUARIO.toUpperCase()
-        : usuario.NOMBRE_USUARIO,
-      ESTADO_USUARIO: ESTADO_USUARIO ?? usuario.ESTADO_USUARIO,
-      ID_ROL: ID_ROL ?? usuario.ID_ROL,
-      FECHA_ULTIMA_CONEXION:
-        FECHA_ULTIMA_CONEXION ?? usuario.FECHA_ULTIMA_CONEXION,
-      PREGUNTAS_CONTESTADAS:
-        PREGUNTAS_CONTESTADAS ?? usuario.PREGUNTAS_CONTESTADAS,
-      FECHA_MODIFICACION: FECHA_MODIFICACION ?? new Date(),
-      MODIFICADO_POR: MODIFICADO_POR ?? usuario.MODIFICADO_POR,
-      PRIMER_INGRESO: PRIMER_INGRESO ?? usuario.PRIMER_INGRESO,
-      FECHA_VENCIMIENTO: FECHA_VENCIMIENTO ?? usuario.FECHA_VENCIMIENTO,
-      CORREO_ELECTRONICO: CORREO_ELECTRONICO ?? usuario.CORREO_ELECTRONICO,
-    });
+    // Convertir valores a mayúsculas donde corresponda
+    if (campos.USUARIO) campos.USUARIO = campos.USUARIO.toUpperCase();
+    if (campos.NOMBRE_USUARIO) campos.NOMBRE_USUARIO = campos.NOMBRE_USUARIO.toUpperCase();
+    if (campos.CORREO_ELECTRONICO) campos.CORREO_ELECTRONICO = campos.CORREO_ELECTRONICO.toUpperCase();
+    if (campos.DIRECCION_1) campos.DIRECCION_1 = campos.DIRECCION_1.toUpperCase();
+    if (campos.DIRECCION_2) campos.DIRECCION_2 = campos.DIRECCION_2.toUpperCase();
+    
+    // Si hay cambios, actualiza el usuario
+    if (Object.keys(campos).length > 0) {
+      await usuario.update(campos);
+    }
 
-    res.status(200).json({
-      msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.`,
-    });
+    res.status(200).json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
   } catch (error) {
     console.error("Error al actualizar el usuario:", error);
-    res.status(500).json({
-      msg: "Error al actualizar el usuario.",
-    });
+    res.status(500).json({ msg: "Error al actualizar el usuario." });
   }
 };
 
