@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.requestPasswordReset = exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
+exports.resetPassword = exports.requestPasswordReset = exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.cambiarContrasena = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const ms_usuarios_1 = require("../models/ms_usuarios");
 const sequelize_1 = require("sequelize");
@@ -59,7 +59,7 @@ const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             DIRECCION_2: DIRECCION_2,
             USUARIO: USUARIO.toUpperCase(),
             NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
-            ESTADO_USUARIO: ESTADO_USUARIO,
+            ESTADO_USUARIO: "NUEVO",
             CONTRASEÑA: CONTRASEÑA.toUpperCase(),
             ID_ROL: ID_ROL,
             FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
@@ -90,35 +90,61 @@ const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     res.json({ ListUsuarios });
 });
 exports.getUsuarios = getUsuarios;
-//Login de Usuario
+// Login de Usuario
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
     try {
         const [resultado] = yield conexion_1.default.query("CALL ValidarUsuario(?, ?);", {
-            replacements: [CORREO_ELECTRONICO, CONTRASEÑA], // Pasamos los valores en un array
+            replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
         });
-        //jwt
-        const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO: CORREO_ELECTRONICO }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
-        //Respuesta al cliente
+        if (!resultado) {
+            return res.status(401).json({ msg: "Credenciales incorrectas" });
+        }
+        //Consulta adicional para obtener el estado del usuario ;)
+        const [estadoUsuario] = yield conexion_1.default.query("SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
+            replacements: [CORREO_ELECTRONICO],
+        });
+        if (estadoUsuario.length > 0 && estadoUsuario[0].ESTADO_USUARIO === "NUEVO") {
+            return res.status(403).json({
+                success: false,
+                msg: "Debe cambiar su contraseña antes de iniciar sesión",
+            });
+        }
+        // Generar token JWT
+        const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
         return res.json({
             success: true,
-            msg: (resultado === null || resultado === void 0 ? void 0 : resultado.Mensaje) || "Inicio de sesión exitoso",
+            msg: "Inicio de sesión exitoso",
             token,
         });
     }
     catch (error) {
         if (error.parent && error.parent.sqlState === "45000") {
-            return res.status(400).json({
-                msg: error.parent.sqlMessage || "Error en el login",
-            });
+            return res.status(400).json({ msg: error.parent.sqlMessage || "Error en el login" });
         }
         console.error("Error: ", error);
-        return res.status(500).json({
-            msg: "Error del servidor",
-        });
+        return res.status(500).json({ msg: "Error del servidor" });
     }
 });
 exports.login = login;
+// Cambio de contraseña y actualizar estado
+const cambiarContrasena = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
+    try {
+        yield conexion_1.default.query("UPDATE ms_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;", {
+            replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
+        });
+        return res.json({
+            success: true,
+            msg: "Contraseña actualizada correctamente. Ya puede iniciar sesión.",
+        });
+    }
+    catch (error) {
+        console.error("Error: ", error);
+        return res.status(500).json({ msg: "Error del servidor" });
+    }
+});
+exports.cambiarContrasena = cambiarContrasena;
 //eliminar un Usuario mediante id
 const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { ID_USUARIO } = req.body;
@@ -152,9 +178,9 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!usuario) {
             return res.status(404).json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
         }
-        // Si se envía una nueva contraseña, encriptarla
         if (CONTRASEÑA) {
             campos.CONTRASEÑA = yield CONTRASEÑA;
+            campos.ESTADO_USUARIO = "NUEVO";
         }
         // Convertir valores a mayúsculas donde corresponda
         if (campos.USUARIO)

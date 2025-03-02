@@ -58,7 +58,7 @@ export const registrerUser = async (req: Request, res: Response) => {
       DIRECCION_2: DIRECCION_2,
       USUARIO: USUARIO.toUpperCase(),
       NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
-      ESTADO_USUARIO: ESTADO_USUARIO,
+      ESTADO_USUARIO: "NUEVO",
       CONTRASEÑA: CONTRASEÑA.toUpperCase(),
       ID_ROL: ID_ROL,
       FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
@@ -94,44 +94,79 @@ export const getUsuarios = async (req: Request, res: Response) => {
   const ListUsuarios = await ms_usuarios.findAll();
   res.json({ ListUsuarios });
 };
-//Login de Usuario
+// Login de Usuario
 export const login = async (req: Request, res: Response) => {
   const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
 
   try {
-    const [resultado] = await sequelize.query(
-    "CALL ValidarUsuario(?, ?);", 
-  {
-    replacements: [CORREO_ELECTRONICO, CONTRASEÑA], // Pasamos los valores en un array
-  }
+    const [resultado]: any = await sequelize.query(
+      "CALL ValidarUsuario(?, ?);", {
+        replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
+      }
     );
 
-    //jwt
+    if (!resultado) {
+      return res.status(401).json({ msg: "Credenciales incorrectas" });
+    }
+
+    //Consulta adicional para obtener el estado del usuario ;)
+    const [estadoUsuario]: any = await sequelize.query(
+      "SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
+        replacements: [CORREO_ELECTRONICO],
+      }
+    );
+
+    if (estadoUsuario.length > 0 && estadoUsuario[0].ESTADO_USUARIO === "NUEVO") {
+      return res.status(403).json({
+        success: false,
+        msg: "Debe cambiar su contraseña antes de iniciar sesión",
+        
+      });
+    }
+
+    // Generar token JWT
     const token = jwt.sign(
-      { CORREO_ELECTRONICO: CORREO_ELECTRONICO },
+      { CORREO_ELECTRONICO },
       process.env.Secret_key || "Repositorio_Documentos_2025",
       { expiresIn: "1h" }
     );
 
-    //Respuesta al cliente
     return res.json({
       success: true,
-      msg: resultado?.Mensaje || "Inicio de sesión exitoso",
+      msg: "Inicio de sesión exitoso",
       token,
     });
   } catch (error: any) {
     if (error.parent && error.parent.sqlState === "45000") {
-      return res.status(400).json({
-        msg: error.parent.sqlMessage || "Error en el login",
-      });
+      return res.status(400).json({ msg: error.parent.sqlMessage || "Error en el login" });
     }
 
     console.error("Error: ", error);
-    return res.status(500).json({
-      msg: "Error del servidor",
-    });
+    return res.status(500).json({ msg: "Error del servidor" });
   }
 };
+
+// Cambio de contraseña y actualizar estado
+export const cambiarContrasena = async (req: Request, res: Response) => {
+  const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
+
+  try {
+    await sequelize.query(
+      "UPDATE ms_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;", {
+        replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
+      }
+    );
+
+    return res.json({
+      success: true,
+      msg: "Contraseña actualizada correctamente. Ya puede iniciar sesión.",
+    });
+  } catch (error: any) {
+    console.error("Error: ", error);
+    return res.status(500).json({ msg: "Error del servidor" });
+  }
+};
+
 
 //eliminar un Usuario mediante id
 export const deleteUsuario = async (req: Request, res: Response) => {
@@ -168,9 +203,10 @@ export const updateUsuario = async (req: Request, res: Response) => {
       return res.status(404).json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
     }
 
-    // Si se envía una nueva contraseña, encriptarla
+
     if (CONTRASEÑA) {
       campos.CONTRASEÑA = await CONTRASEÑA;
+      campos.ESTADO_USUARIO = "NUEVO";
     }
 
     // Convertir valores a mayúsculas donde corresponda
