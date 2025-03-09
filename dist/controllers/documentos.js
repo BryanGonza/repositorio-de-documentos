@@ -56,7 +56,6 @@ const SubirDoc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             msg: "Archivo subido exitosamente",
             fileId: response.data.id, // ID del archivo en Google Drive
             fileUrl: response.data.webViewLink, // URL de visualización
-            downloadUrl: response.data.webContentLink, // URL de descarga
         });
     }
     catch (error) {

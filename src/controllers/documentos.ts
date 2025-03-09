@@ -53,7 +53,7 @@ export const SubirDoc = async (req: Request, res: Response) => {
         msg: "Archivo subido exitosamente",
         fileId: response.data.id, // ID del archivo en Google Drive
         fileUrl: response.data.webViewLink, // URL de visualización
-        downloadUrl: response.data.webContentLink, // URL de descarga
+    
       });
     } catch (error) {
       console.error("Error al subir el archivo a Google Drive:", error);
