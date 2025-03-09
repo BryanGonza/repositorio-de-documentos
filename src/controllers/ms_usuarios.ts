@@ -4,7 +4,7 @@ import { ms_usuarios } from "../models/ms_usuarios";
 import { Op, where } from "sequelize";
 import jwt from "jsonwebtoken";
 import sequelize from "../database/conexion";
-import { transporter } from "../controllers/emailService";
+import { configurarTransporter } from "../controllers/emailService";
 
 //Registrar un usuario
 export const registrerUser = async (req: Request, res: Response) => {
@@ -29,7 +29,7 @@ export const registrerUser = async (req: Request, res: Response) => {
     FECHA_VENCIMIENTO,
     CORREO_ELECTRONICO,
   } = req.body;
- 
+
   const user = await ms_usuarios.findOne({
     where: {
       [Op.or]: {
@@ -71,8 +71,6 @@ export const registrerUser = async (req: Request, res: Response) => {
       FECHA_VENCIMIENTO: FECHA_VENCIMIENTO,
       CORREO_ELECTRONICO: CORREO_ELECTRONICO.toUpperCase(),
     });
-    
-
 
     res.json({
       msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
@@ -81,12 +79,8 @@ export const registrerUser = async (req: Request, res: Response) => {
     console.error("Error en la creación del usuario:", error);
     res.status(500).json({
       msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
-      
     });
   }
-  
-  
-  
 };
 
 //Get para traer todos los usuarios
@@ -100,7 +94,8 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const [resultado]: any = await sequelize.query(
-      "CALL ValidarUsuario(?, ?);", {
+      "CALL ValidarUsuario(?, ?);",
+      {
         replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
       }
     );
@@ -111,16 +106,19 @@ export const login = async (req: Request, res: Response) => {
 
     //Consulta adicional para obtener el estado del usuario ;)
     const [estadoUsuario]: any = await sequelize.query(
-      "SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
+      "SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;",
+      {
         replacements: [CORREO_ELECTRONICO],
       }
     );
 
-    if (estadoUsuario.length > 0 && estadoUsuario[0].ESTADO_USUARIO === "NUEVO") {
+    if (
+      estadoUsuario.length > 0 &&
+      estadoUsuario[0].ESTADO_USUARIO === "NUEVO"
+    ) {
       return res.status(403).json({
         success: false,
         msg: "Debe cambiar su contraseña antes de iniciar sesión",
-        
       });
     }
 
@@ -138,7 +136,9 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     if (error.parent && error.parent.sqlState === "45000") {
-      return res.status(400).json({ msg: error.parent.sqlMessage || "Error en el login" });
+      return res
+        .status(400)
+        .json({ msg: error.parent.sqlMessage || "Error en el login" });
     }
 
     console.error("Error: ", error);
@@ -152,7 +152,8 @@ export const cambiarContrasena = async (req: Request, res: Response) => {
 
   try {
     await sequelize.query(
-      "UPDATE ms_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;", {
+      "UPDATE ms_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;",
+      {
         replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
       }
     );
@@ -166,7 +167,6 @@ export const cambiarContrasena = async (req: Request, res: Response) => {
     return res.status(500).json({ msg: "Error del servidor" });
   }
 };
-
 
 //eliminar un Usuario mediante id
 export const deleteUsuario = async (req: Request, res: Response) => {
@@ -200,9 +200,10 @@ export const updateUsuario = async (req: Request, res: Response) => {
     // Buscar usuario
     const usuario = await ms_usuarios.findOne({ where: { ID_USUARIO } });
     if (!usuario) {
-      return res.status(404).json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
+      return res
+        .status(404)
+        .json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
     }
-
 
     if (CONTRASEÑA) {
       campos.CONTRASEÑA = await CONTRASEÑA;
@@ -211,17 +212,23 @@ export const updateUsuario = async (req: Request, res: Response) => {
 
     // Convertir valores a mayúsculas donde corresponda
     if (campos.USUARIO) campos.USUARIO = campos.USUARIO.toUpperCase();
-    if (campos.NOMBRE_USUARIO) campos.NOMBRE_USUARIO = campos.NOMBRE_USUARIO.toUpperCase();
-    if (campos.CORREO_ELECTRONICO) campos.CORREO_ELECTRONICO = campos.CORREO_ELECTRONICO.toUpperCase();
-    if (campos.DIRECCION_1) campos.DIRECCION_1 = campos.DIRECCION_1.toUpperCase();
-    if (campos.DIRECCION_2) campos.DIRECCION_2 = campos.DIRECCION_2.toUpperCase();
-    
+    if (campos.NOMBRE_USUARIO)
+      campos.NOMBRE_USUARIO = campos.NOMBRE_USUARIO.toUpperCase();
+    if (campos.CORREO_ELECTRONICO)
+      campos.CORREO_ELECTRONICO = campos.CORREO_ELECTRONICO.toUpperCase();
+    if (campos.DIRECCION_1)
+      campos.DIRECCION_1 = campos.DIRECCION_1.toUpperCase();
+    if (campos.DIRECCION_2)
+      campos.DIRECCION_2 = campos.DIRECCION_2.toUpperCase();
+
     // Si hay cambios, actualiza el usuario
     if (Object.keys(campos).length > 0) {
       await usuario.update(campos);
     }
 
-    res.status(200).json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
+    res
+      .status(200)
+      .json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
   } catch (error) {
     console.error("Error al actualizar el usuario:", error);
     res.status(500).json({ msg: "Error al actualizar el usuario." });
@@ -256,13 +263,10 @@ export const getUsuarioEmail = async (req: Request, res: Response) => {
   }
 };
 
-
-
 // Genrar un código
 function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
-
 
 export const requestPasswordReset = async (req: Request, res: Response) => {
   try {
@@ -283,7 +287,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       });
     }
 
-    // Generar el código y fecha de expiración 
+    // Generar el código y fecha de expiración
     const code = generateCode();
     const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
 
@@ -292,10 +296,11 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       resetCodeExpires: expires,
     });
 
-    // Enviar el correo con Nodemailer
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER, 
-      to: correoE,
+    const transporter = await configurarTransporter();
+    // Configurar el correo electrónico
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Correo del remitente
+      to: correoE, // Correo del destinatario
       subject: "Recuperación de contraseña",
       html: `<p>Estimado/a <strong>${user.NOMBRE_USUARIO}</strong>,</p>
     
@@ -322,8 +327,11 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
         
         <p>© Derechos reservados Universidad Nacional Autónoma de Honduras 2025 Desarrollado por TechDesign.</p>
         <img src="https://eslared.net/sites/default/files/2020-06/unah_logo.png" alt="Logo UNAH" style="width: 50px; height: auto;">
-  </div>`
-    });
+  </div>`,
+    };
+    // Enviar el correo
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Correo enviado:", info.response);
 
     return res.json({
       msg: "Código de recuperación enviado al correo.",
@@ -333,18 +341,17 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     return res.status(500).json({
       msg: "Error del servidor al solicitar recuperación.",
 
-      error
+      error,
     });
   }
 };
-
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { correoE, code, newContrasena } = req.body;
     if (!correoE || !code || !newContrasena) {
       return res.status(400).json({
-        msg: "correo, codigo, y neueva Contraseña son requeridos."
+        msg: "correo, codigo, y neueva Contraseña son requeridos.",
       });
     }
 
@@ -354,14 +361,14 @@ export const resetPassword = async (req: Request, res: Response) => {
     });
     if (!user) {
       return res.status(404).json({
-        msg: "Usuario no encontrado."
+        msg: "Usuario no encontrado.",
       });
     }
 
     // Verificar que el código coincida
     if (user.getDataValue("resetCode") !== code) {
       return res.status(400).json({
-        msg: "El código es inválido."
+        msg: "El código es inválido.",
       });
     }
 
@@ -369,7 +376,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     const expires: Date | null = user.getDataValue("resetCodeExpires");
     if (!expires || expires.getTime() < Date.now()) {
       return res.status(400).json({
-        msg: "El código ha expirado, solicita uno nuevo."
+        msg: "El código ha expirado, solicita uno nuevo.",
       });
     }
 
@@ -384,13 +391,13 @@ export const resetPassword = async (req: Request, res: Response) => {
     });
 
     return res.json({
-      msg: "Contraseña restablecida correctamente."
+      msg: "Contraseña restablecida correctamente.",
     });
   } catch (error) {
     console.error("Error en resetPassword:", error);
     return res.status(500).json({
       msg: "Error del servidor al restablecer la contraseña.",
-      error
+      error,
     });
   }
 };

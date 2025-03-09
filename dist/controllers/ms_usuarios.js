@@ -104,7 +104,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const [estadoUsuario] = yield conexion_1.default.query("SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
             replacements: [CORREO_ELECTRONICO],
         });
-        if (estadoUsuario.length > 0 && estadoUsuario[0].ESTADO_USUARIO === "NUEVO") {
+        if (estadoUsuario.length > 0 &&
+            estadoUsuario[0].ESTADO_USUARIO === "NUEVO") {
             return res.status(403).json({
                 success: false,
                 msg: "Debe cambiar su contraseña antes de iniciar sesión",
@@ -120,7 +121,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         if (error.parent && error.parent.sqlState === "45000") {
-            return res.status(400).json({ msg: error.parent.sqlMessage || "Error en el login" });
+            return res
+                .status(400)
+                .json({ msg: error.parent.sqlMessage || "Error en el login" });
         }
         console.error("Error: ", error);
         return res.status(500).json({ msg: "Error del servidor" });
@@ -176,7 +179,9 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         // Buscar usuario
         const usuario = yield ms_usuarios_1.ms_usuarios.findOne({ where: { ID_USUARIO } });
         if (!usuario) {
-            return res.status(404).json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
+            return res
+                .status(404)
+                .json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
         }
         if (CONTRASEÑA) {
             campos.CONTRASEÑA = yield CONTRASEÑA;
@@ -197,7 +202,9 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (Object.keys(campos).length > 0) {
             yield usuario.update(campos);
         }
-        res.status(200).json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
+        res
+            .status(200)
+            .json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
     }
     catch (error) {
         console.error("Error al actualizar el usuario:", error);
@@ -252,17 +259,18 @@ const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 msg: "No existe un usuario con ese correo.",
             });
         }
-        // Generar el código y fecha de expiración 
+        // Generar el código y fecha de expiración
         const code = generateCode();
         const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
         yield user.update({
             resetCode: code,
             resetCodeExpires: expires,
         });
-        // Enviar el correo con Nodemailer
-        yield emailService_1.transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: correoE,
+        const transporter = yield (0, emailService_1.configurarTransporter)();
+        // Configurar el correo electrónico
+        const mailOptions = {
+            from: process.env.EMAIL_USER, // Correo del remitente
+            to: correoE, // Correo del destinatario
             subject: "Recuperación de contraseña",
             html: `<p>Estimado/a <strong>${user.NOMBRE_USUARIO}</strong>,</p>
     
@@ -289,8 +297,11 @@ const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, fun
         
         <p>© Derechos reservados Universidad Nacional Autónoma de Honduras 2025 Desarrollado por TechDesign.</p>
         <img src="https://eslared.net/sites/default/files/2020-06/unah_logo.png" alt="Logo UNAH" style="width: 50px; height: auto;">
-  </div>`
-        });
+  </div>`,
+        };
+        // Enviar el correo
+        const info = yield transporter.sendMail(mailOptions);
+        console.log("Correo enviado:", info.response);
         return res.json({
             msg: "Código de recuperación enviado al correo.",
         });
@@ -299,7 +310,7 @@ const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, fun
         console.error("Error en recuperacion de contraseña:", error);
         return res.status(500).json({
             msg: "Error del servidor al solicitar recuperación.",
-            error
+            error,
         });
     }
 });
@@ -309,7 +320,7 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const { correoE, code, newContrasena } = req.body;
         if (!correoE || !code || !newContrasena) {
             return res.status(400).json({
-                msg: "correo, codigo, y neueva Contraseña son requeridos."
+                msg: "correo, codigo, y neueva Contraseña son requeridos.",
             });
         }
         // Buscar usuario por correo
@@ -318,20 +329,20 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
         if (!user) {
             return res.status(404).json({
-                msg: "Usuario no encontrado."
+                msg: "Usuario no encontrado.",
             });
         }
         // Verificar que el código coincida
         if (user.getDataValue("resetCode") !== code) {
             return res.status(400).json({
-                msg: "El código es inválido."
+                msg: "El código es inválido.",
             });
         }
         // Verificar que no esté expirado
         const expires = user.getDataValue("resetCodeExpires");
         if (!expires || expires.getTime() < Date.now()) {
             return res.status(400).json({
-                msg: "El código ha expirado, solicita uno nuevo."
+                msg: "El código ha expirado, solicita uno nuevo.",
             });
         }
         // // Hashear la nueva contraseña
@@ -343,14 +354,14 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             resetCodeExpires: null,
         });
         return res.json({
-            msg: "Contraseña restablecida correctamente."
+            msg: "Contraseña restablecida correctamente.",
         });
     }
     catch (error) {
         console.error("Error en resetPassword:", error);
         return res.status(500).json({
             msg: "Error del servidor al restablecer la contraseña.",
-            error
+            error,
         });
     }
 });

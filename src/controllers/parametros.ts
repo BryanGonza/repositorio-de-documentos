@@ -4,11 +4,7 @@ import { parametros } from "../models/parametros";
 export const CrearParametro = async (req: Request, res: Response) => {
   const { PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS } = req.body;
 
-  if (!PARAMETRO || !VALOR || !ADMIN_INTENTOS_INVALIDOS) {
-    return res.json({
-      msg: `Datos incompletos.`,
-    });
-  }
+  
 
   try {
     parametros.create({
@@ -59,6 +55,7 @@ export const updateParametros = async (req: Request, res: Response) => {
   const {
     ID_PARAMETRO,
     PARAMETRO,
+    VALOR,
     ADMIN_INTENTOS_INVALIDOS,
     ID_USUARIO,
     FECHA_MODIFICACION,
@@ -77,6 +74,7 @@ export const updateParametros = async (req: Request, res: Response) => {
     // actualizar los campos que vienen en el body
     await parametro.update({
       PARAMETRO: PARAMETRO ? PARAMETRO.toUpperCase() : parametro.PARAMETRO,
+      VALOR: VALOR ? VALOR.toUpperCase() : parametro.VALOR,
       ADMIN_INTENTOS_INVALIDOS:
         ADMIN_INTENTOS_INVALIDOS ?? parametro.ADMIN_INTENTOS_INVALIDOS,
       FECHA_MODIFICACION: FECHA_MODIFICACION ?? new Date(),
@@ -98,3 +96,4 @@ export const getParametros = async (req: Request, res: Response) => {
   const ListParametros = await parametros.findAll();
   res.json({ ListParametros });
 };
+

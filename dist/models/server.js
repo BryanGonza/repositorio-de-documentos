@@ -15,10 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 //1.Importar correctamente
+//rutas
 const ms_usuarios_1 = __importDefault(require("../routes/ms_usuarios"));
 const parametros_1 = __importDefault(require("../routes/parametros"));
 const permisos_1 = __importDefault(require("../routes/permisos"));
 const roles_1 = __importDefault(require("../routes/roles"));
+const objetos_1 = __importDefault(require("../routes/objetos"));
+const estado_1 = __importDefault(require("../routes/estado"));
+const dcomentos_1 = __importDefault(require("../routes/dcomentos"));
+//Modelos
+const objetos_2 = require("./objetos");
+const estado_2 = require("./estado");
 const ms_usuarios_2 = require("./ms_usuarios");
 const parametros_2 = require("./parametros");
 const permisos_2 = require("./permisos");
@@ -34,10 +41,13 @@ class Server {
     }
     router() {
         //2. Use correctamente
+        this.app.use(estado_1.default);
+        this.app.use(objetos_1.default);
         this.app.use(ms_usuarios_1.default);
         this.app.use(parametros_1.default);
         this.app.use(permisos_1.default);
         this.app.use(roles_1.default);
+        this.app.use(dcomentos_1.default);
     }
     middlewares() {
         // Configurar CORS para aceptar solicitudes desde http://localhost:4200
@@ -57,10 +67,12 @@ class Server {
             try {
                 //3.Agregar await
                 //await sequelize.authenticate();
+                yield objetos_2.ms_objetos.sync();
                 yield ms_usuarios_2.ms_usuarios.sync();
                 yield parametros_2.parametros.sync();
                 yield permisos_2.permisos.sync();
                 yield roles_2.ms_roles.sync();
+                yield estado_2.estado.sync();
                 console.log("Conectado ;)");
             }
             catch (error) {

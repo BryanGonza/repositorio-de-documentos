@@ -13,11 +13,6 @@ exports.getParametros = exports.updateParametros = exports.deleteParametro = exp
 const parametros_1 = require("../models/parametros");
 const CrearParametro = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS } = req.body;
-    if (!PARAMETRO || !VALOR || !ADMIN_INTENTOS_INVALIDOS) {
-        return res.json({
-            msg: `Datos incompletos.`,
-        });
-    }
     try {
         parametros_1.parametros.create({
             PARAMETRO: PARAMETRO.toUpperCase(),
@@ -64,7 +59,7 @@ const deleteParametro = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.deleteParametro = deleteParametro;
 //Actualizar parametros :)
 const updateParametros = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { ID_PARAMETRO, PARAMETRO, ADMIN_INTENTOS_INVALIDOS, ID_USUARIO, FECHA_MODIFICACION, } = req.body;
+    const { ID_PARAMETRO, PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS, ID_USUARIO, FECHA_MODIFICACION, } = req.body;
     try {
         // Buscar el parametro por su id
         const parametro = yield parametros_1.parametros.findOne({ where: { ID_PARAMETRO } });
@@ -76,6 +71,7 @@ const updateParametros = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // actualizar los campos que vienen en el body
         yield parametro.update({
             PARAMETRO: PARAMETRO ? PARAMETRO.toUpperCase() : parametro.PARAMETRO,
+            VALOR: VALOR ? VALOR.toUpperCase() : parametro.VALOR,
             ADMIN_INTENTOS_INVALIDOS: ADMIN_INTENTOS_INVALIDOS !== null && ADMIN_INTENTOS_INVALIDOS !== void 0 ? ADMIN_INTENTOS_INVALIDOS : parametro.ADMIN_INTENTOS_INVALIDOS,
             FECHA_MODIFICACION: FECHA_MODIFICACION !== null && FECHA_MODIFICACION !== void 0 ? FECHA_MODIFICACION : new Date(),
         });
