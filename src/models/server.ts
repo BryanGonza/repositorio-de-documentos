@@ -17,6 +17,7 @@ import { ms_usuarios } from "./ms_usuarios";
 import { parametros } from "./parametros";
 import { permisos } from './permisos';
 import { ms_roles } from './roles';
+import { documentos } from "./Documentos/Documentos.model";
 
 
 import sequelize from "../database/conexion";
@@ -75,6 +76,7 @@ class Server {
       await permisos.sync();
       await ms_roles.sync();
       await estado.sync();
+      await documentos.sync();
    
       console.log("Conectado ;)");
     } catch (error) {

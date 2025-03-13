@@ -30,6 +30,7 @@ const ms_usuarios_2 = require("./ms_usuarios");
 const parametros_2 = require("./parametros");
 const permisos_2 = require("./permisos");
 const roles_2 = require("./roles");
+const Documentos_model_1 = require("./Documentos/Documentos.model");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -73,6 +74,7 @@ class Server {
                 yield permisos_2.permisos.sync();
                 yield roles_2.ms_roles.sync();
                 yield estado_2.estado.sync();
+                yield Documentos_model_1.documentos.sync();
                 console.log("Conectado ;)");
             }
             catch (error) {
