@@ -36,7 +36,7 @@ export const SubirDoc = async (req: Request, res: Response) => {
 
   const fileMetadata = {
     name: req.file.originalname,
-    parents: [folderId], // Carpeta en Google Drive
+    parents: [folderId],
   };
 
   const media = {
@@ -66,17 +66,20 @@ export const SubirDoc = async (req: Request, res: Response) => {
       },
     });
 
-    const { ID_USUARIO } = req.body;
+    const { ID_USUARIO, ES_PUBLICO, DESCRIPCION, NOMBRE } = req.body;
+
 
     // Guardar la información del archivo en la base de datos
     await documentos.create({
       ID_USUARIO,
       ID_ESTADO: 1,
-      NOMBRE: req.file?.originalname,
+      NOMBRE: NOMBRE.toUpperCase(),
       URL: response.data.webViewLink, // Enlace de visualización
       URl_DOW:`https://drive.google.com/uc?export=download&id=${response.data.id}`,
       FECHA_SUBIDA: new Date(),
       DRIVE_ID: response.data.id,
+      ES_PUBLICO,
+      DESCRIPCION: DESCRIPCION.toUpperCase()
     });
 
     // Respuesta exitosa
@@ -121,11 +124,24 @@ export const SubirDoc = async (req: Request, res: Response) => {
       res.status(500).json({ msg: "Error al eliminar el documento" });
     }
   };
-//Get para traer todos los DOC
-export const getDocumetos = async (req: Request, res: Response) => {
-  const ListDocume = await documentos.findAll();
-  res.json({ ListDocume });
-};
+  export const getDocumetos = async (req: Request, res: Response) => {
+    try {
+      // Filtrar y ordenar documentos por fecha descendente (más recientes primero)
+      const ListDocume = await documentos.findAll({
+        where: {
+          ES_PUBLICO: 1, 
+        },
+        order: [
+          ['FECHA_SUBIDA', 'DESC'] // Ordenar por FECHA_SUBIDA en orden descendente
+        ]
+      });
+  
+      res.json({ ListDocume });
+    } catch (error) {
+      console.error('Error al obtener los documentos:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  };
 
 export const getCorreoUsuario = async (req: Request, res: Response) => {
   console.log("Parámetros recibidos:", req.params);
@@ -146,20 +162,32 @@ export const getCorreoUsuario = async (req: Request, res: Response) => {
     res.status(500).json({ msg: "Error al obtener el correo del usuario" });
   }
 }
-//docuemtos user id
 export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
   const { idUsuario } = req.params;
-console.log(idUsuario);
+  console.log(idUsuario);
 
   try {
     const documentosUsuario = await documentos.findAll({
-      
       where: { ID_USUARIO: idUsuario },
-      attributes: ["ID_DOCUMENTO","ID_USUARIO", "ID_ESTADO", "NOMBRE", "URL", "FECHA_SUBIDA", "DRIVE_ID"]
+      attributes: [
+        "ID_DOCUMENTO",
+        "ID_USUARIO", 
+        "ID_ESTADO", 
+        "NOMBRE", 
+        "URL",
+        "URl_DOW", 
+        "FECHA_SUBIDA", 
+        "DRIVE_ID", 
+        "DESCRIPCION", 
+        "ES_PUBLICO"
+      ],
+      order: [
+        ['FECHA_SUBIDA', 'DESC']  // Ordenar por fecha descendente (más recientes primero)
+      ]
     });
 
     if (!documentosUsuario.length) {
-      return res.status(404).json({ msg: "No has subido ningun docuemto..." });
+      return res.status(404).json({ msg: "No has subido ningún documento..." });
     }
 
     res.json({ ListDocume: documentosUsuario });

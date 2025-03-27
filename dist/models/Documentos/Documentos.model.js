@@ -24,7 +24,9 @@ exports.documentos = conexion_1.default.define(
     URL: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     URl_DOW: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     FECHA_SUBIDA: { type: sequelize_1.DataTypes.DATE, allowNull: true },
-    DRIVE_ID: { type: sequelize_1.DataTypes.STRING, allowNull: true }
+    DRIVE_ID: { type: sequelize_1.DataTypes.STRING, allowNull: true },
+    ES_PUBLICO: { type: sequelize_1.DataTypes.NUMBER, allowNull: true },
+    DESCRIPCION: { type: sequelize_1.DataTypes.STRING, allowNull: true }
 }, {
     timestamps: false, // Desactivar createdAt y updatedAt 
     tableName: 'documentos',

@@ -20,7 +20,9 @@ export const documentos = sequelize.define(
         URL: {type: DataTypes.STRING, allowNull: true},
         URl_DOW: {type: DataTypes.STRING, allowNull: true},
         FECHA_SUBIDA: {type: DataTypes.DATE, allowNull: true},
-        DRIVE_ID: {type: DataTypes.STRING, allowNull: true}
+        DRIVE_ID: {type: DataTypes.STRING, allowNull: true},
+        ES_PUBLICO: {type: DataTypes.NUMBER, allowNull: true},
+        DESCRIPCION: {type: DataTypes.STRING, allowNull: true}
     }, {
         timestamps: false, // Desactivar createdAt y updatedAt 
         tableName: 'documentos',

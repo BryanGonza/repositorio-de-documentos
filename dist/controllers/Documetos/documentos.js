@@ -31,7 +31,7 @@ const auth = new googleapis_1.google.auth.GoogleAuth({
 });
 const drive = googleapis_1.google.drive({ version: "v3", auth });
 const SubirDoc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a, _b;
     console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname);
     if (!req.file) {
         return res.status(400).json({ msg: "Error al subir el archivo" });
@@ -42,7 +42,7 @@ const SubirDoc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     const fileMetadata = {
         name: req.file.originalname,
-        parents: [folderId], // Carpeta en Google Drive
+        parents: [folderId],
     };
     const media = {
         mimeType: req.file.mimetype,
@@ -67,20 +67,22 @@ const SubirDoc = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 type: "anyone", // Accesible para cualquier persona con el enlace
             },
         });
-        const { ID_USUARIO } = req.body;
+        const { ID_USUARIO, ES_PUBLICO, DESCRIPCION, NOMBRE } = req.body;
         // Guardar la información del archivo en la base de datos
         yield Documentos_model_1.documentos.create({
             ID_USUARIO,
             ID_ESTADO: 1,
-            NOMBRE: (_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname,
+            NOMBRE: NOMBRE.toUpperCase(),
             URL: response.data.webViewLink, // Enlace de visualización
             URl_DOW: `https://drive.google.com/uc?export=download&id=${response.data.id}`,
             FECHA_SUBIDA: new Date(),
             DRIVE_ID: response.data.id,
+            ES_PUBLICO,
+            DESCRIPCION: DESCRIPCION.toUpperCase()
         });
         // Respuesta exitosa
         res.json({
-            msg: `Documento ${(_c = req.file) === null || _c === void 0 ? void 0 : _c.originalname} subido correctamente.`,
+            msg: `Documento ${(_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname} subido correctamente.`,
             fileUrl: response.data.webViewLink, // Enlace de visualización
             downloadUrl: `https://drive.google.com/uc?export=download&id=${response.data.id}`, // Enlace de descarga directa
         });
@@ -118,10 +120,23 @@ const EliminarDoc = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.EliminarDoc = EliminarDoc;
-//Get para traer todos los DOC
 const getDocumetos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const ListDocume = yield Documentos_model_1.documentos.findAll();
-    res.json({ ListDocume });
+    try {
+        // Filtrar y ordenar documentos por fecha descendente (más recientes primero)
+        const ListDocume = yield Documentos_model_1.documentos.findAll({
+            where: {
+                ES_PUBLICO: 1,
+            },
+            order: [
+                ['FECHA_SUBIDA', 'DESC'] // Ordenar por FECHA_SUBIDA en orden descendente
+            ]
+        });
+        res.json({ ListDocume });
+    }
+    catch (error) {
+        console.error('Error al obtener los documentos:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
 });
 exports.getDocumetos = getDocumetos;
 const getCorreoUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -143,17 +158,30 @@ const getCorreoUsuario = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getCorreoUsuario = getCorreoUsuario;
-//docuemtos user id
 const getDocumentosPorUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { idUsuario } = req.params;
     console.log(idUsuario);
     try {
         const documentosUsuario = yield Documentos_model_1.documentos.findAll({
             where: { ID_USUARIO: idUsuario },
-            attributes: ["ID_DOCUMENTO", "ID_USUARIO", "ID_ESTADO", "NOMBRE", "URL", "FECHA_SUBIDA", "DRIVE_ID"]
+            attributes: [
+                "ID_DOCUMENTO",
+                "ID_USUARIO",
+                "ID_ESTADO",
+                "NOMBRE",
+                "URL",
+                "URl_DOW",
+                "FECHA_SUBIDA",
+                "DRIVE_ID",
+                "DESCRIPCION",
+                "ES_PUBLICO"
+            ],
+            order: [
+                ['FECHA_SUBIDA', 'DESC'] // Ordenar por fecha descendente (más recientes primero)
+            ]
         });
         if (!documentosUsuario.length) {
-            return res.status(404).json({ msg: "No has subido ningun docuemto..." });
+            return res.status(404).json({ msg: "No has subido ningún documento..." });
         }
         res.json({ ListDocume: documentosUsuario });
     }
