@@ -14,7 +14,6 @@ exports.permisos = conexion_1.default.define('TBL_PERMISOS', {
         allowNull: false
     },
     ID_ROL: { type: sequelize_1.DataTypes.INTEGER, allowNull: false },
-    ID_OBJETO: { type: sequelize_1.DataTypes.INTEGER, allowNull: false },
     PERMISO_INSERCION: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     PERMISO_ELIMINACION: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     PERMISO_ACTUALIZACION: { type: sequelize_1.DataTypes.STRING, allowNull: true },

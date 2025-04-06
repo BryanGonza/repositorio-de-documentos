@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteObjetos = exports.updateObjetos = exports.getObjetos = exports.createObjetos = void 0;
+exports.getObjetosConPermisos = exports.deleteObjetos = exports.updateObjetos = exports.getObjetos = exports.createObjetos = void 0;
 const objetos_1 = require("../models/objetos");
 // Insertar un objeto
 const createObjetos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -102,3 +102,46 @@ const deleteObjetos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.deleteObjetos = deleteObjetos;
+const getObjetosConPermisos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { permisos } = req.body.user;
+        console.log("Usuario y permisos:", req.body.user); // Log de depuración
+        const objetosDB = yield objetos_1.ms_objetos.findAll();
+        const objetosConPermiso = objetosDB.map((obj) => {
+            const tipo = (obj.TIPO_OBJETO || "").trim().toLowerCase();
+            console.log("Tipo objeto recibido:", tipo); // Log de depuración
+            let allowed = false;
+            switch (tipo) {
+                case "inserción":
+                case "insercion":
+                    allowed = ((permisos.PERMISO_INSERCION || "").trim().toLowerCase() === "si");
+                    console.log("Comparando para inserción:", permisos.PERMISO_INSERCION, "->", allowed);
+                    break;
+                case "eliminación":
+                case "eliminacion":
+                    allowed = ((permisos.PERMISO_ELIMINACION || "").trim().toLowerCase() === "si");
+                    console.log("Comparando para eliminación:", permisos.PERMISO_ELIMINACION, "->", allowed);
+                    break;
+                case "actualización":
+                case "actualizacion":
+                    allowed = ((permisos.PERMISO_ACTUALIZACION || "").trim().toLowerCase() === "si");
+                    console.log("Comparando para actualización:", permisos.PERMISO_ACTUALIZACION, "->", allowed);
+                    break;
+                case "consulta":
+                    allowed = ((permisos.PERMISO_CONSULTAR || "").trim().toLowerCase() === "si");
+                    console.log("Comparando para consulta:", permisos.PERMISO_CONSULTAR, "->", allowed);
+                    break;
+                default:
+                    allowed = false;
+                    console.log("Tipo no reconocido:", tipo);
+            }
+            return Object.assign(Object.assign({}, obj.dataValues), { allowed });
+        });
+        return res.json(objetosConPermiso);
+    }
+    catch (error) {
+        console.error("Error en getObjetosConPermisos:", error);
+        return res.status(500).json({ msg: "Error interno del servidor" });
+    }
+});
+exports.getObjetosConPermisos = getObjetosConPermisos;

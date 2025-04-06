@@ -9,7 +9,7 @@ export const permisos = sequelize.define('TBL_PERMISOS', {
         allowNull: false
     },
     ID_ROL: { type: DataTypes.INTEGER, allowNull: false },
-    ID_OBJETO: { type: DataTypes.INTEGER, allowNull: false },
+    
     PERMISO_INSERCION: { type: DataTypes.STRING, allowNull: true },
     PERMISO_ELIMINACION: { type: DataTypes.STRING, allowNull: true },
     PERMISO_ACTUALIZACION: { type: DataTypes.STRING, allowNull: true },

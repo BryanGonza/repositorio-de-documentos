@@ -18,10 +18,10 @@ const createPermiso = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const Nuevo_Permiso = yield permisos_1.permisos.create({
             ID_ROL,
             ID_OBJETO,
-            PERMISO_INSERCION,
-            PERMISO_ELIMINACION,
-            PERMISO_ACTUALIZACION,
-            PERMISO_CONSULTAR,
+            PERMISO_INSERCION: PERMISO_INSERCION.toUpperCase(),
+            PERMISO_ELIMINACION: PERMISO_ELIMINACION.toUpperCase(),
+            PERMISO_ACTUALIZACION: PERMISO_ACTUALIZACION.toUpperCase(),
+            PERMISO_CONSULTAR: PERMISO_CONSULTAR.toUpperCase(),
             CREADO_POR,
             MODIFICADO_POR,
             FECHA_CREACION,
@@ -48,6 +48,7 @@ const getPermisos = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getPermisos = getPermisos;
 // Actualizar un permiso
 const updatePermiso = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     const { ID_PERMISO, ID_ROL, ID_OBJETO, PERMISO_INSERCION, PERMISO_ELIMINACION, PERMISO_ACTUALIZACION, PERMISO_CONSULTAR, CREADO_POR, MODIFICADO_POR, FECHA_CREACION, FECHA_MODIFICACION } = req.body;
     try {
         // Buscar el usuario por su id
@@ -61,10 +62,10 @@ const updatePermiso = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         yield permiso.update({
             ID_ROL: ID_ROL !== null && ID_ROL !== void 0 ? ID_ROL : permiso.ID_ROL,
             ID_OBJETO: ID_OBJETO !== null && ID_OBJETO !== void 0 ? ID_OBJETO : permiso.ID_OBJETO,
-            PERMISO_INSERCION: PERMISO_INSERCION !== null && PERMISO_INSERCION !== void 0 ? PERMISO_INSERCION : permiso.PERMISO_INSERCION,
-            PERMISO_ELIMINACION: PERMISO_ELIMINACION !== null && PERMISO_ELIMINACION !== void 0 ? PERMISO_ELIMINACION : permiso.PERMISO_ELIMINACION,
-            PERMISO_ACTUALIZACION: PERMISO_ACTUALIZACION !== null && PERMISO_ACTUALIZACION !== void 0 ? PERMISO_ACTUALIZACION : permiso.PERMISO_ACTUALIZACION,
-            PERMISO_CONSULTAR: PERMISO_CONSULTAR !== null && PERMISO_CONSULTAR !== void 0 ? PERMISO_CONSULTAR : permiso.PERMISO_CONSULTAR,
+            PERMISO_INSERCION: (_a = PERMISO_INSERCION.toUpperCase()) !== null && _a !== void 0 ? _a : permiso.PERMISO_INSERCION.toUpperCase(),
+            PERMISO_ELIMINACION: (_b = PERMISO_ELIMINACION.toUpperCase()) !== null && _b !== void 0 ? _b : permiso.PERMISO_ELIMINACION.toUpperCase(),
+            PERMISO_ACTUALIZACION: (_c = PERMISO_ACTUALIZACION.toUpperCase()) !== null && _c !== void 0 ? _c : permiso.PERMISO_ACTUALIZACION.toUpperCase(),
+            PERMISO_CONSULTAR: (_d = PERMISO_CONSULTAR.toUpperCase()) !== null && _d !== void 0 ? _d : permiso.PERMISO_CONSULTAR.toUpperCase(),
             CREADO_POR: CREADO_POR !== null && CREADO_POR !== void 0 ? CREADO_POR : permiso.CREADO_POR,
             MODIFICADO_POR: MODIFICADO_POR !== null && MODIFICADO_POR !== void 0 ? MODIFICADO_POR : permiso.MODIFICADO_POR,
             FECHA_CREACION: FECHA_CREACION !== null && FECHA_CREACION !== void 0 ? FECHA_CREACION : permiso.FECHA_CREACION,

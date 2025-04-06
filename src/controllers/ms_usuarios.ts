@@ -93,6 +93,7 @@ export const login = async (req: Request, res: Response) => {
   const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
 
   try {
+
     const [resultado]: any = await sequelize.query(
       "CALL ValidarUsuario(?, ?);",
       {
@@ -104,7 +105,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ msg: "Credenciales incorrectas" });
     }
 
-    //Consulta adicional para obtener el estado del usuario ;)
+
     const [estadoUsuario]: any = await sequelize.query(
       "SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;",
       {
@@ -122,17 +123,49 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Generar token JWT
+    const [rolUsuario]: any = await sequelize.query(
+      `
+        SELECT r.ID_ROL, r.ROL
+        FROM ms_usuarios u
+        INNER JOIN ms_roles r ON u.ID_ROL = r.ID_ROL
+        WHERE u.CORREO_ELECTRONICO = ?
+        LIMIT 1;
+      `,
+      {
+        replacements: [CORREO_ELECTRONICO],
+      }
+    );
+    
+    if (!rolUsuario || rolUsuario.length === 0) {
+      return res.status(500).json({ msg: "No se encontró el rol del usuario" });
+    }
+    
+    const idRol = rolUsuario[0].ID_ROL;
+
+
+    // Manejo de caso si no existe registro 
+    if (!rolUsuario || rolUsuario.length === 0) {
+      return res.status(500).json({ msg: "No se encontró el rol del usuario" });
+    }
+
+    const nombreRol = rolUsuario[0].ROL;
+
+    // generar token JWT 
     const token = jwt.sign(
-      { CORREO_ELECTRONICO },
+      {
+        CORREO_ELECTRONICO,
+        rol: idRol, // Aquí usas el ID numérico del rol
+      },
       process.env.Secret_key || "Repositorio_Documentos_2025",
       { expiresIn: "1h" }
     );
 
+ 
     return res.json({
       success: true,
       msg: "Inicio de sesión exitoso",
       token,
+      
     });
   } catch (error: any) {
     if (error.parent && error.parent.sqlState === "45000") {
@@ -145,6 +178,7 @@ export const login = async (req: Request, res: Response) => {
     return res.status(500).json({ msg: "Error del servidor" });
   }
 };
+
 
 // Cambio de contraseña y actualizar estado
 export const cambiarContrasena = async (req: Request, res: Response) => {

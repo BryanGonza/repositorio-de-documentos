@@ -103,4 +103,56 @@ export const updateObjetos = async (req: Request, res: Response) => {
             msg: 'Error al eliminar el objeto.',
         });
     }
+
+    
+};
+export const getObjetosConPermisos = async (req: Request, res: Response) => {
+  try {
+    const { permisos } = req.body.user;
+    console.log("Usuario y permisos:", req.body.user); // Log de depuración
+
+    const objetosDB = await ms_objetos.findAll();
+
+    const objetosConPermiso = objetosDB.map((obj: any) => {
+      const tipo = (obj.TIPO_OBJETO || "").trim().toLowerCase();
+      console.log("Tipo objeto recibido:", tipo); // Log de depuración
+
+      let allowed = false;
+
+      switch (tipo) {
+        case "inserción":
+        case "insercion":
+          allowed = ((permisos.PERMISO_INSERCION || "").trim().toLowerCase() === "si");
+          console.log("Comparando para inserción:", permisos.PERMISO_INSERCION, "->", allowed);
+          break;
+        case "eliminación":
+        case "eliminacion":
+          allowed = ((permisos.PERMISO_ELIMINACION || "").trim().toLowerCase() === "si");
+          console.log("Comparando para eliminación:", permisos.PERMISO_ELIMINACION, "->", allowed);
+          break;
+        case "actualización":
+        case "actualizacion":
+          allowed = ((permisos.PERMISO_ACTUALIZACION || "").trim().toLowerCase() === "si");
+          console.log("Comparando para actualización:", permisos.PERMISO_ACTUALIZACION, "->", allowed);
+          break;
+        case "consulta":
+          allowed = ((permisos.PERMISO_CONSULTAR || "").trim().toLowerCase() === "si");
+          console.log("Comparando para consulta:", permisos.PERMISO_CONSULTAR, "->", allowed);
+          break;
+        default:
+          allowed = false;
+          console.log("Tipo no reconocido:", tipo);
+      }
+
+      return {
+        ...obj.dataValues,
+        allowed
+      };
+    });
+
+    return res.json(objetosConPermiso);
+  } catch (error) {
+    console.error("Error en getObjetosConPermisos:", error);
+    return res.status(500).json({ msg: "Error interno del servidor" });
+  }
 };

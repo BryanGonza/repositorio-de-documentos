@@ -12,15 +12,16 @@ import {
 
 } from "../controllers/ms_usuarios";
 
-import validarToken from "../routes/validartoken";
+import validarToken, { validarTokenConPermisos } from "../routes/validartoken";
+import { validarPermiso } from "./validarPermiso";
 
 const router = Router();
 
-router.post("/api/ms_usuarios/register", registrerUser);
+router.post("/api/ms_usuarios/register", validarTokenConPermisos, validarPermiso('insercion'), registrerUser);
 router.post("/api/ms_usuarios/login", login);
-router.get("/api/ms_usuarios/getUsuarios", getUsuarios);
-router.delete("/api/ms_usuarios/deleteUsuario", deleteUsuario);
-router.put("/api/ms_usuarios/updateUsuario", updateUsuario);
+router.get("/api/ms_usuarios/getUsuarios", validarTokenConPermisos, getUsuarios);
+router.delete("/api/ms_usuarios/deleteUsuario", validarTokenConPermisos, validarPermiso('eliminacion'), deleteUsuario);
+router.put("/api/ms_usuarios/updateUsuario", validarTokenConPermisos, validarPermiso('actualizacion'), updateUsuario);
 router.post("/api/ms_usuarios/getUsuarioEmail", getUsuarioEmail);
 router.post("/api/ms_usuarios/cambioContrasena", cambiarContrasena);
 

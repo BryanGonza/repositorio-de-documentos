@@ -100,7 +100,6 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!resultado) {
             return res.status(401).json({ msg: "Credenciales incorrectas" });
         }
-        //Consulta adicional para obtener el estado del usuario ;)
         const [estadoUsuario] = yield conexion_1.default.query("SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
             replacements: [CORREO_ELECTRONICO],
         });
@@ -111,8 +110,29 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 msg: "Debe cambiar su contraseña antes de iniciar sesión",
             });
         }
-        // Generar token JWT
-        const token = jsonwebtoken_1.default.sign({ CORREO_ELECTRONICO }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
+        const [rolUsuario] = yield conexion_1.default.query(`
+        SELECT r.ID_ROL, r.ROL
+        FROM ms_usuarios u
+        INNER JOIN ms_roles r ON u.ID_ROL = r.ID_ROL
+        WHERE u.CORREO_ELECTRONICO = ?
+        LIMIT 1;
+      `, {
+            replacements: [CORREO_ELECTRONICO],
+        });
+        if (!rolUsuario || rolUsuario.length === 0) {
+            return res.status(500).json({ msg: "No se encontró el rol del usuario" });
+        }
+        const idRol = rolUsuario[0].ID_ROL;
+        // Manejo de caso si no existe registro 
+        if (!rolUsuario || rolUsuario.length === 0) {
+            return res.status(500).json({ msg: "No se encontró el rol del usuario" });
+        }
+        const nombreRol = rolUsuario[0].ROL;
+        // generar token JWT 
+        const token = jsonwebtoken_1.default.sign({
+            CORREO_ELECTRONICO,
+            rol: idRol, // Aquí usas el ID numérico del rol
+        }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
         return res.json({
             success: true,
             msg: "Inicio de sesión exitoso",
