@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.requestPasswordReset = exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.cambiarContrasena = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
+exports.resetPassword = exports.requestPasswordReset = exports.getUsuarioEmail = exports.updateUsuario = exports.deleteUsuario = exports.cambiarConperfil = exports.cambiarContrasena = exports.login = exports.getUsuarios = exports.registrerUser = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const ms_usuarios_1 = require("../models/ms_usuarios");
 const sequelize_1 = require("sequelize");
@@ -132,7 +132,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const token = jsonwebtoken_1.default.sign({
             CORREO_ELECTRONICO,
             rol: idRol, // Aquí usas el ID numérico del rol
-        }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "6m" });
+        }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
         return res.json({
             success: true,
             msg: "Inicio de sesión exitoso",
@@ -168,6 +168,24 @@ const cambiarContrasena = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.cambiarContrasena = cambiarContrasena;
+// Cambio de contraseña y actualizar estado
+const cambiarConperfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
+    try {
+        yield conexion_1.default.query("UPDATE ms_usuarios SET CONTRASEÑA = ? WHERE CORREO_ELECTRONICO = ?;", {
+            replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
+        });
+        return res.json({
+            success: true,
+            msg: "Contraseña actualizada correctamente.",
+        });
+    }
+    catch (error) {
+        console.error("Error: ", error);
+        return res.status(500).json({ msg: "Error del servidor" });
+    }
+});
+exports.cambiarConperfil = cambiarConperfil;
 //eliminar un Usuario mediante id
 const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { ID_USUARIO } = req.body;

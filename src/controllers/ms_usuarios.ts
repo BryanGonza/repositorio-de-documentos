@@ -157,7 +157,7 @@ export const login = async (req: Request, res: Response) => {
         rol: idRol, // Aquí usas el ID numérico del rol
       },
       process.env.Secret_key || "Repositorio_Documentos_2025",
-      { expiresIn: "6m" }
+      { expiresIn: "1h" }
     );
 
  
@@ -195,6 +195,27 @@ export const cambiarContrasena = async (req: Request, res: Response) => {
     return res.json({
       success: true,
       msg: "Contraseña actualizada correctamente. Ya puede iniciar sesión.",
+    });
+  } catch (error: any) {
+    console.error("Error: ", error);
+    return res.status(500).json({ msg: "Error del servidor" });
+  }
+};
+// Cambio de contraseña y actualizar estado
+export const cambiarConperfil = async (req: Request, res: Response) => {
+  const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
+
+  try {
+    await sequelize.query(
+      "UPDATE ms_usuarios SET CONTRASEÑA = ? WHERE CORREO_ELECTRONICO = ?;",
+      {
+        replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
+      }
+    );
+
+    return res.json({
+      success: true,
+      msg: "Contraseña actualizada correctamente.",
     });
   } catch (error: any) {
     console.error("Error: ", error);

@@ -8,7 +8,8 @@ import {
   getUsuarioEmail,
   requestPasswordReset,
   resetPassword,
-  cambiarContrasena
+  cambiarContrasena,
+  cambiarConperfil
 
 } from "../controllers/ms_usuarios";
 
@@ -24,6 +25,7 @@ router.delete("/api/ms_usuarios/deleteUsuario", validarTokenConPermisos, validar
 router.put("/api/ms_usuarios/updateUsuario", validarTokenConPermisos, validarPermiso('actualizacion'), updateUsuario);
 router.post("/api/ms_usuarios/getUsuarioEmail", getUsuarioEmail);
 router.post("/api/ms_usuarios/cambioContrasena", cambiarContrasena);
+router.post("/api/ms_usuarios/cambiarConperfil", cambiarConperfil);
 
 
 // Rutas para recuperación de contraseña

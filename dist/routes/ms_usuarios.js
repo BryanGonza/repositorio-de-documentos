@@ -12,6 +12,7 @@ router.delete("/api/ms_usuarios/deleteUsuario", validartoken_1.validarTokenConPe
 router.put("/api/ms_usuarios/updateUsuario", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('actualizacion'), ms_usuarios_1.updateUsuario);
 router.post("/api/ms_usuarios/getUsuarioEmail", ms_usuarios_1.getUsuarioEmail);
 router.post("/api/ms_usuarios/cambioContrasena", ms_usuarios_1.cambiarContrasena);
+router.post("/api/ms_usuarios/cambiarConperfil", ms_usuarios_1.cambiarConperfil);
 // Rutas para recuperación de contraseña
 router.post("/api/ms_usuarios/request-password-reset", ms_usuarios_1.requestPasswordReset);
 router.post("/api/ms_usuarios/reset-password", ms_usuarios_1.resetPassword);
