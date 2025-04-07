@@ -5,10 +5,10 @@ import { EliminarDoc, getCorreoUsuario, getDocumentosPorUsuario, getDocumetos, S
 import { validarPermiso } from "./validarPermiso";
 import  { validarTokenConPermisos } from "../routes/validartoken";
 const router = Router();
-router.post("/api/Documentos/subirDc",validarTokenConPermisos, validarPermiso('insercion'), cargas, SubirDoc);
-router.get("/api/Documentos/MostrarDocuemtos", getDocumetos)
-router.delete("/api/Documentos/EliminarDocumento/:idDocumento", EliminarDoc);
-router.get("/api/Documentos/correo/:idUsuario", getCorreoUsuario);
-router.get("/api/Documentos/DocUser/:idUsuario", getDocumentosPorUsuario);
+router.post("/api/Documentos/subirDc", validarTokenConPermisos, validarPermiso('insercion'), cargas, SubirDoc);
+router.get("/api/Documentos/MostrarDocuemtos",validarTokenConPermisos, getDocumetos)
+router.delete("/api/Documentos/EliminarDocumento/:idDocumento", validarTokenConPermisos, validarPermiso('eliminacion'), EliminarDoc);
+router.get("/api/Documentos/correo/:idUsuario", validarTokenConPermisos, getCorreoUsuario);
+router.get("/api/Documentos/DocUser/:idUsuario",validarTokenConPermisos, getDocumentosPorUsuario);
 
 export default router;

@@ -18,7 +18,7 @@ const permisos_1 = require("../models/permisos"); // Importa tu modelo de permis
 const validarTokenConPermisos = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const headersToken = req.headers["authorization"];
     if (!headersToken || !headersToken.startsWith("Bearer ")) {
-        return res.status(401).json({ msg: "Acceso denegado" });
+        return res.status(401).json({ msg: "Acceso denegado, falta JWT" });
     }
     try {
         const token = headersToken.slice(7);
@@ -39,7 +39,7 @@ const validarTokenConPermisos = (req, res, next) => __awaiter(void 0, void 0, vo
         next();
     }
     catch (error) {
-        return res.status(401).json({ msg: "Token inválido" });
+        return res.status(401).json({ msg: "Token inválido o vencido" });
     }
 });
 exports.validarTokenConPermisos = validarTokenConPermisos;

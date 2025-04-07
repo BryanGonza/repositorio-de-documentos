@@ -8,6 +8,6 @@ router.post("/api/objetos/createObjetos", createObjetos);
 router.get("/api/objetos/getObjetos", getObjetos);
 router.put("/api/objetos/updateObjetos", updateObjetos);
 router.delete("/api/objetos/deleteObjetos", deleteObjetos);
-router.get("/api/roles/objetosPermisos", validarTokenConPermisos, getObjetosConPermisos);
+router.get("/api/objetos/objetosPermisos", validarTokenConPermisos, getObjetosConPermisos);
 
 export default router;

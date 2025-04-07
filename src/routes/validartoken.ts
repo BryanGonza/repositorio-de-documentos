@@ -6,7 +6,7 @@ import { permisos } from "../models/permisos"; // Importa tu modelo de permisos
 export const validarTokenConPermisos = async (req: Request, res: Response, next: NextFunction) => {
   const headersToken = req.headers["authorization"];
   if (!headersToken || !headersToken.startsWith("Bearer ")) {
-    return res.status(401).json({ msg: "Acceso denegado" });
+    return res.status(401).json({ msg: "Acceso denegado, falta JWT" });
   }
 
   try {
@@ -31,7 +31,7 @@ export const validarTokenConPermisos = async (req: Request, res: Response, next:
 
     next();
   } catch (error) {
-    return res.status(401).json({ msg: "Token inválido" });
+    return res.status(401).json({ msg: "Token inválido o vencido" });
   }
 };
 

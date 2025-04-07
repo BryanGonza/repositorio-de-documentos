@@ -11,5 +11,5 @@ router.post("/api/objetos/createObjetos", objetos_1.createObjetos);
 router.get("/api/objetos/getObjetos", objetos_1.getObjetos);
 router.put("/api/objetos/updateObjetos", objetos_1.updateObjetos);
 router.delete("/api/objetos/deleteObjetos", objetos_1.deleteObjetos);
-router.get("/api/roles/objetosPermisos", validartoken_1.default, objetos_1.getObjetosConPermisos);
+router.get("/api/objetos/objetosPermisos", validartoken_1.default, objetos_1.getObjetosConPermisos);
 exports.default = router;

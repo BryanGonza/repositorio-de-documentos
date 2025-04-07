@@ -132,7 +132,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const token = jsonwebtoken_1.default.sign({
             CORREO_ELECTRONICO,
             rol: idRol, // Aquí usas el ID numérico del rol
-        }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
+        }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "6m" });
         return res.json({
             success: true,
             msg: "Inicio de sesión exitoso",

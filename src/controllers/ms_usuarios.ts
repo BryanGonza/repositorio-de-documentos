@@ -157,7 +157,7 @@ export const login = async (req: Request, res: Response) => {
         rol: idRol, // Aquí usas el ID numérico del rol
       },
       process.env.Secret_key || "Repositorio_Documentos_2025",
-      { expiresIn: "1h" }
+      { expiresIn: "6m" }
     );
 
  
