@@ -30,6 +30,7 @@ const sequelize_1 = require("sequelize");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const conexion_1 = __importDefault(require("../database/conexion"));
 const emailService_1 = require("../controllers/emailService");
+const Documentos_model_1 = require("../models/Documentos/Documentos.model");
 //Registrar un usuario
 const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { ID_USUARIO, ID_DEPARTAMENTO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
@@ -187,22 +188,58 @@ const cambiarConperfil = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.cambiarConperfil = cambiarConperfil;
 //eliminar un Usuario mediante id
+// export const deleteUsuario = async (req: Request, res: Response) => {
+//   const { ID_USUARIO } = req.body;
+//   try {
+//     const deletedCount = await ms_usuarios.destroy({
+//       where: { ID_USUARIO: ID_USUARIO },
+//     });
+//     if (deletedCount === 0) {
+//       return res.status(404).json({
+//         msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
+//       });
+//     }
+//     res.json({
+//       msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
+//     });
+//   } catch (error) {
+//     console.error("Error al eliminar el usuario:", error);
+//     res.status(500).json({
+//       msg: "Error al eliminar el usuario.",
+//     });
+//   }
+// };
+//Elimina Usuario y todos los documentos relacionados
 const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { ID_USUARIO } = req.body;
+    const transaction = yield conexion_1.default.transaction();
     try {
+        //elimina primero todos los documentos relacionados
+        yield Documentos_model_1.documentos.destroy({
+            where: { ID_USUARIO },
+            transaction,
+        });
+        //elimina el usuario
         const deletedCount = yield ms_usuarios_1.ms_usuarios.destroy({
-            where: { ID_USUARIO: ID_USUARIO },
+            where: { ID_USUARIO },
+            transaction,
         });
         if (deletedCount === 0) {
+            // rollback si el usuario no existe
+            yield transaction.rollback();
             return res.status(404).json({
                 msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
             });
         }
+        // Confirmacion
+        yield transaction.commit();
         res.json({
             msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
         });
     }
     catch (error) {
+        // Si ocurre un error revierte la transacción
+        yield transaction.rollback();
         console.error("Error al eliminar el usuario:", error);
         res.status(500).json({
             msg: "Error al eliminar el usuario.",
