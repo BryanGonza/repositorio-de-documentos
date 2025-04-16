@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const tipo_caracteristica_1 = require("../controllers/Documetos/tipo_caracteristica");
+const router = (0, express_1.Router)();
+router.post("/api/tipo_caracteristica/createTipo_c", tipo_caracteristica_1.createTipo_c);
+router.get("/api/tipo_caracteristica/getTipo_c", tipo_caracteristica_1.getTipo_c);
+router.put("/api/tipo_caracteristica/updateTipo_c", tipo_caracteristica_1.updateTipo_c);
+router.delete("/api/tipo_caracteristica/deleteTipo_c", tipo_caracteristica_1.deleteTipo_c);
+exports.default = router;

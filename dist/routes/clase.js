@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const clase_1 = require("../controllers/UNAH/clase");
+const router = (0, express_1.Router)();
+router.post("/api/clase/createClase", clase_1.createClase);
+router.get("/api/clase/getClase", clase_1.getClase);
+router.put("/api/clase/updateClase", clase_1.updateClase);
+router.delete("/api/clase/deleteClase", clase_1.deleteClase);
+exports.default = router;

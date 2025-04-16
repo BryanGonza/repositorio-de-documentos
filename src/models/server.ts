@@ -10,6 +10,10 @@ import rRoles from '../routes/roles';
 import rObjeto from '../routes/objetos';
 import rEstado from '../routes/estado';
 import rDoc from "../routes/dcomentos"
+import  rFacultad  from "../routes/facultad";
+import  rDepartamentos  from "../routes/departamentos";
+import  rClases  from "../routes/clase";
+import  rTipoDocumento  from "../routes/tipo_documento";
 //Modelos
 import {ms_objetos} from './objetos';
 import {estado} from './estado';
@@ -18,6 +22,10 @@ import { parametros } from "./parametros";
 import { permisos } from './permisos';
 import { ms_roles } from './roles';
 import { documentos } from "./Documentos/Documentos.model";
+import { Facultad } from "./UNAH/facultad"; 
+import { departamentos } from "./UNAH/departamentos";
+import { clases } from "./UNAH/clase";
+import { tipo_documento } from "./Documentos/tipo_documento";
 
 
 import sequelize from "../database/conexion";
@@ -46,6 +54,10 @@ class Server {
     this.app.use(rPermisos);
     this.app.use(rRoles);
     this.app.use(rDoc);
+    this.app.use(rFacultad);
+    this.app.use(rDepartamentos);
+    this.app.use(rClases);
+    this.app.use(rTipoDocumento);
   }
 
   middlewares() {
@@ -77,6 +89,10 @@ class Server {
       await ms_roles.sync();
       await estado.sync();
       await documentos.sync();
+      await Facultad.sync();
+      await departamentos.sync();
+      await clases.sync();
+      await tipo_documento.sync();
    
       console.log("Conectado ;)");
     } catch (error) {

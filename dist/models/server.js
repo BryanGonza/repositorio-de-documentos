@@ -23,6 +23,10 @@ const roles_1 = __importDefault(require("../routes/roles"));
 const objetos_1 = __importDefault(require("../routes/objetos"));
 const estado_1 = __importDefault(require("../routes/estado"));
 const dcomentos_1 = __importDefault(require("../routes/dcomentos"));
+const facultad_1 = __importDefault(require("../routes/facultad"));
+const departamentos_1 = __importDefault(require("../routes/departamentos"));
+const clase_1 = __importDefault(require("../routes/clase"));
+const tipo_documento_1 = __importDefault(require("../routes/tipo_documento"));
 //Modelos
 const objetos_2 = require("./objetos");
 const estado_2 = require("./estado");
@@ -31,6 +35,10 @@ const parametros_2 = require("./parametros");
 const permisos_2 = require("./permisos");
 const roles_2 = require("./roles");
 const Documentos_model_1 = require("./Documentos/Documentos.model");
+const facultad_2 = require("./UNAH/facultad");
+const departamentos_2 = require("./UNAH/departamentos");
+const clase_2 = require("./UNAH/clase");
+const tipo_documento_2 = require("./Documentos/tipo_documento");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -49,6 +57,10 @@ class Server {
         this.app.use(permisos_1.default);
         this.app.use(roles_1.default);
         this.app.use(dcomentos_1.default);
+        this.app.use(facultad_1.default);
+        this.app.use(departamentos_1.default);
+        this.app.use(clase_1.default);
+        this.app.use(tipo_documento_1.default);
     }
     middlewares() {
         // Configurar CORS para aceptar solicitudes desde http://localhost:4200
@@ -75,6 +87,10 @@ class Server {
                 yield roles_2.ms_roles.sync();
                 yield estado_2.estado.sync();
                 yield Documentos_model_1.documentos.sync();
+                yield facultad_2.Facultad.sync();
+                yield departamentos_2.departamentos.sync();
+                yield clase_2.clases.sync();
+                yield tipo_documento_2.tipo_documento.sync();
                 console.log("Conectado ;)");
             }
             catch (error) {

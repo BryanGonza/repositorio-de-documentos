@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const version_1 = require("../controllers/Documetos/version");
+const router = (0, express_1.Router)();
+router.post("/api/version/createVersion", version_1.createVersion);
+router.get("/api/version/getVersion", version_1.getVersion);
+router.put("/api/version/updateVersion", version_1.updateVersion);
+router.delete("/api/version/deleteVersion", version_1.deleteVersion);
+exports.default = router;

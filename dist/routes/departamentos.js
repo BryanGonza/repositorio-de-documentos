@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const departamentos_1 = require("../controllers/UNAH/departamentos");
+const router = (0, express_1.Router)();
+router.post("/api/departamentos/createDep", departamentos_1.createDep);
+router.get("/api/departamentos/getDep", departamentos_1.getDep);
+router.put("/api/departamentos/updateDep", departamentos_1.updateDep);
+router.delete("/api/departamentos/deleteDep", departamentos_1.deleteDep);
+exports.default = router;
