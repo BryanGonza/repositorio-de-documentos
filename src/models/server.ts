@@ -1,6 +1,7 @@
 import express, { Application } from "express";
 import cors from "cors";
 import { getParametros } from "../controllers/parametros";
+import '../models';
 //1.Importar correctamente
 //rutas
 import rUser from "../routes/ms_usuarios";

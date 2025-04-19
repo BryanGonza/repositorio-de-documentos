@@ -102,40 +102,25 @@ const deleteObjetos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.deleteObjetos = deleteObjetos;
+function parsePerm(val) {
+    if (typeof val === "boolean") {
+        return val;
+    }
+    if (typeof val === "string") {
+        return val.trim().toLowerCase() === "si";
+    }
+    return false;
+}
 const getObjetosConPermisos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { permisos } = req.body.user;
-        console.log("Usuario y permisos:", req.body.user); // Log de depuración
+        // 1) Obtenemos el arreglo de permisos granulares del usuario
+        const userPermisos = req.body.user.permisos;
+        console.log("Usuario y permisos:", req.body.user);
+        // 2) Traemos todos los objetos de la BD
         const objetosDB = yield objetos_1.ms_objetos.findAll();
         const objetosConPermiso = objetosDB.map((obj) => {
-            const tipo = (obj.TIPO_OBJETO || "").trim().toLowerCase();
-            console.log("Tipo objeto recibido:", tipo); // Log de depuración
-            let allowed = false;
-            switch (tipo) {
-                case "inserción":
-                case "insercion":
-                    allowed = ((permisos.PERMISO_INSERCION || "").trim().toLowerCase() === "si");
-                    console.log("Comparando para inserción:", permisos.PERMISO_INSERCION, "->", allowed);
-                    break;
-                case "eliminación":
-                case "eliminacion":
-                    allowed = ((permisos.PERMISO_ELIMINACION || "").trim().toLowerCase() === "si");
-                    console.log("Comparando para eliminación:", permisos.PERMISO_ELIMINACION, "->", allowed);
-                    break;
-                case "actualización":
-                case "actualizacion":
-                    allowed = ((permisos.PERMISO_ACTUALIZACION || "").trim().toLowerCase() === "si");
-                    console.log("Comparando para actualización:", permisos.PERMISO_ACTUALIZACION, "->", allowed);
-                    break;
-                case "consulta":
-                    allowed = ((permisos.PERMISO_CONSULTAR || "").trim().toLowerCase() === "si");
-                    console.log("Comparando para consulta:", permisos.PERMISO_CONSULTAR, "->", allowed);
-                    break;
-                default:
-                    allowed = false;
-                    console.log("Tipo no reconocido:", tipo);
-            }
-            return Object.assign(Object.assign({}, obj.dataValues), { allowed });
+            const permisoUsuario = userPermisos.find(p => p.ID_OBJETO === obj.ID_OBJETO);
+            return Object.assign(Object.assign({}, obj.dataValues), { PERMISO_CONSULTAR: parsePerm(permisoUsuario === null || permisoUsuario === void 0 ? void 0 : permisoUsuario.PERMISO_CONSULTAR), PERMISO_INSERCION: parsePerm(permisoUsuario === null || permisoUsuario === void 0 ? void 0 : permisoUsuario.PERMISO_INSERCION), PERMISO_ACTUALIZACION: parsePerm(permisoUsuario === null || permisoUsuario === void 0 ? void 0 : permisoUsuario.PERMISO_ACTUALIZACION), PERMISO_ELIMINACION: parsePerm(permisoUsuario === null || permisoUsuario === void 0 ? void 0 : permisoUsuario.PERMISO_ELIMINACION) });
         });
         return res.json(objetosConPermiso);
     }

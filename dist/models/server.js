@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+require("../models");
 //1.Importar correctamente
 //rutas
 const ms_usuarios_1 = __importDefault(require("../routes/ms_usuarios"));

@@ -6,9 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ms_objetos = void 0;
 const sequelize_1 = require("sequelize");
 const conexion_1 = __importDefault(require("../database/conexion"));
-exports.ms_objetos = conexion_1.default.define(
-// Tabla objetos
-'ms_objetos', {
+exports.ms_objetos = conexion_1.default.define('ms_objetos', {
     ID_OBJETO: {
         type: sequelize_1.DataTypes.INTEGER,
         primaryKey: true,
@@ -23,7 +21,7 @@ exports.ms_objetos = conexion_1.default.define(
     FECHA_MODIFICACION: { type: sequelize_1.DataTypes.DATE, allowNull: true },
     MODIFICADO_POR: { type: sequelize_1.DataTypes.STRING, allowNull: true },
 }, {
-    timestamps: false, // Desactivar createdAt y updatedAt 
+    timestamps: false,
     tableName: 'ms_objetos',
     freezeTableName: true,
 });

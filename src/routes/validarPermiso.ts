@@ -1,32 +1,39 @@
 import { Request, Response, NextFunction } from "express";
 
-export const validarPermiso = (accion: 'insercion' | 'eliminacion' | 'actualizacion' | 'consulta') => {
+export const validarPermiso = (
+  accion: 'insercion' | 'eliminacion' | 'actualizacion' | 'consulta',
+  objeto: string
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.body.user || !req.body.user.permisos) {
-      return res.status(403).json({ msg: "No se han cargado permisos de usuario" });
+    if (!req.body.user || !Array.isArray(req.body.user.permisos)) {
+      return res.status(403).json({ msg: "No se han cargado permisos del usuario." });
     }
 
-    let permisoKey = "";
-    switch (accion) {
-      case 'insercion':
-        permisoKey = "PERMISO_INSERCION";
-        break;
-      case 'eliminacion':
-        permisoKey = "PERMISO_ELIMINACION";
-        break;
-      case 'actualizacion':
-        permisoKey = "PERMISO_ACTUALIZACION";
-        break;
-      case 'consulta':
-        permisoKey = "PERMISO_CONSULTAR";
-        break;
+    const permisoKey = {
+      insercion:    "PERMISO_INSERCION",
+      eliminacion:  "PERMISO_ELIMINACION",
+      actualizacion:"PERMISO_ACTUALIZACION",
+      consulta:     "PERMISO_CONSULTAR"
+    }[accion];
+
+    interface PermisoPorObjeto {
+      OBJETO: string;
+      [key: string]: any;
     }
 
-    // Si en tu BD guardas "SI" / "si" cuando hay permiso, ajusta la comparación:
-    const valorPermiso = req.body.user.permisos[permisoKey];
-    // Verificamos de forma case-insensitive que sea "si".
+    const permisos = req.body.user.permisos as PermisoPorObjeto[];
+
+    // Buscamos por inclusión, no por igualdad exacta
+    const permisoObjeto = permisos.find(p =>
+      p.OBJETO.trim().toLowerCase().includes(objeto.trim().toLowerCase())
+    );
+
+    const valorPermiso = permisoObjeto?.[permisoKey];
+
     if (!valorPermiso || valorPermiso.toLowerCase() !== "si") {
-      return res.status(403).json({ msg: `No tiene permiso para ${accion}` });
+      return res
+        .status(403)
+        .json({ msg: `No tiene permiso de ${accion} en ${objeto}` });
     }
 
     next();

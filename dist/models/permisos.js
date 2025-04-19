@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.permisos = void 0;
 const sequelize_1 = require("sequelize");
 const conexion_1 = __importDefault(require("../database/conexion"));
+const objetos_1 = require("./objetos");
 exports.permisos = conexion_1.default.define('TBL_PERMISOS', {
     ID_PERMISO: {
         type: sequelize_1.DataTypes.INTEGER,
@@ -14,6 +15,7 @@ exports.permisos = conexion_1.default.define('TBL_PERMISOS', {
         allowNull: false
     },
     ID_ROL: { type: sequelize_1.DataTypes.INTEGER, allowNull: false },
+    ID_OBJETO: { type: sequelize_1.DataTypes.INTEGER, allowNull: false },
     PERMISO_INSERCION: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     PERMISO_ELIMINACION: { type: sequelize_1.DataTypes.STRING, allowNull: true },
     PERMISO_ACTUALIZACION: { type: sequelize_1.DataTypes.STRING, allowNull: true },
@@ -26,4 +28,9 @@ exports.permisos = conexion_1.default.define('TBL_PERMISOS', {
     timestamps: false,
     tableName: 'TBL_PERMISOS',
     freezeTableName: true,
+});
+// Definir la relación con el alias correcto
+exports.permisos.belongsTo(objetos_1.ms_objetos, {
+    foreignKey: 'ID_OBJETO',
+    as: 'objeto' // ESTE es el alias que usaremos
 });

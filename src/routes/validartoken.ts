@@ -1,7 +1,7 @@
-// middlewares/validarTokenConPermisos.ts
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { permisos } from "../models/permisos"; // Importa tu modelo de permisos
+import { permisos } from "../models/permisos";
+import { ms_objetos } from "../models/objetos"; // Asegurate de no renombrarlo
 
 export const validarTokenConPermisos = async (req: Request, res: Response, next: NextFunction) => {
   const headersToken = req.headers["authorization"];
@@ -17,20 +17,47 @@ export const validarTokenConPermisos = async (req: Request, res: Response, next:
       return res.status(401).json({ msg: "Token no contiene 'rol'" });
     }
 
-    // Consulta en BD los permisos asociados al rol
-    const permisoData = await permisos.findOne({ where: { ID_ROL: decoded.rol } });
-    if (!permisoData) {
+    // Usar el alias 'objeto' definido en permisos.belongsTo
+    const permisoData = await permisos.findAll({
+      where: { ID_ROL: decoded.rol },
+      include: [{
+        model: ms_objetos,
+        as: 'objeto',  // DEBE coincidir con el alias definido en permisos.belongsTo
+        attributes: ['OBJETO']
+      }]
+    });
+
+    if (!permisoData || permisoData.length === 0) {
       return res.status(403).json({ msg: "No se encontraron permisos para el rol" });
     }
+
+    interface PermisoExtendido {
+      ID_OBJETO: number;
+      PERMISO_INSERCION: string;
+      PERMISO_ELIMINACION: string;
+      PERMISO_ACTUALIZACION: string;
+      PERMISO_CONSULTAR: string;
+      objeto?: { OBJETO: string };
+    }
+    
+    const permisosFormateados = permisoData.map((p: PermisoExtendido) => ({
+      ID_OBJETO:         p.ID_OBJETO,                 // <— ¡AQUÍ!
+      OBJETO:            p.objeto?.OBJETO  || "",
+      PERMISO_INSERCION: p.PERMISO_INSERCION,
+      PERMISO_ELIMINACION: p.PERMISO_ELIMINACION,
+      PERMISO_ACTUALIZACION: p.PERMISO_ACTUALIZACION,
+      PERMISO_CONSULTAR: p.PERMISO_CONSULTAR
+    }));
 
     // Adjunta la información de usuario y permisos en la request.
     req.body.user = {
       rol: decoded.rol,
-      permisos: permisoData.dataValues  // Ej: { PERMISO_INSERCION: 'SI', PERMISO_ELIMINACION: 'NO', ... }
+      permisos: permisosFormateados
     };
 
     next();
   } catch (error) {
+    console.error("Error en validarTokenConPermisos:", error);
     return res.status(401).json({ msg: "Token inválido o vencido" });
   }
 };

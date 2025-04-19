@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const caracteristica_1 = require("../controllers/Documetos/caracteristica");
+const router = (0, express_1.Router)();
+router.post("/api/caracteristica/createCaracteristica", caracteristica_1.createCaracteristica);
+router.get("/api/caracteristica/getCaracteristica", caracteristica_1.getCaracteristica);
+router.put("/api/caracteristica/updateCaracteristica", caracteristica_1.updateCaracteristica);
+router.delete("/api/caracteristica/deleteCaracteristica", caracteristica_1.deleteCaracteristica);
+exports.default = router;

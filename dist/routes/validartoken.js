@@ -14,7 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validarTokenConPermisos = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const permisos_1 = require("../models/permisos"); // Importa tu modelo de permisos
+const permisos_1 = require("../models/permisos");
+const objetos_1 = require("../models/objetos"); // Asegurate de no renombrarlo
 const validarTokenConPermisos = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const headersToken = req.headers["authorization"];
     if (!headersToken || !headersToken.startsWith("Bearer ")) {
@@ -26,19 +27,38 @@ const validarTokenConPermisos = (req, res, next) => __awaiter(void 0, void 0, vo
         if (!decoded.rol) {
             return res.status(401).json({ msg: "Token no contiene 'rol'" });
         }
-        // Consulta en BD los permisos asociados al rol
-        const permisoData = yield permisos_1.permisos.findOne({ where: { ID_ROL: decoded.rol } });
-        if (!permisoData) {
+        // Usar el alias 'objeto' definido en permisos.belongsTo
+        const permisoData = yield permisos_1.permisos.findAll({
+            where: { ID_ROL: decoded.rol },
+            include: [{
+                    model: objetos_1.ms_objetos,
+                    as: 'objeto', // DEBE coincidir con el alias definido en permisos.belongsTo
+                    attributes: ['OBJETO']
+                }]
+        });
+        if (!permisoData || permisoData.length === 0) {
             return res.status(403).json({ msg: "No se encontraron permisos para el rol" });
         }
+        const permisosFormateados = permisoData.map((p) => {
+            var _a;
+            return ({
+                ID_OBJETO: p.ID_OBJETO, // <— ¡AQUÍ!
+                OBJETO: ((_a = p.objeto) === null || _a === void 0 ? void 0 : _a.OBJETO) || "",
+                PERMISO_INSERCION: p.PERMISO_INSERCION,
+                PERMISO_ELIMINACION: p.PERMISO_ELIMINACION,
+                PERMISO_ACTUALIZACION: p.PERMISO_ACTUALIZACION,
+                PERMISO_CONSULTAR: p.PERMISO_CONSULTAR
+            });
+        });
         // Adjunta la información de usuario y permisos en la request.
         req.body.user = {
             rol: decoded.rol,
-            permisos: permisoData.dataValues // Ej: { PERMISO_INSERCION: 'SI', PERMISO_ELIMINACION: 'NO', ... }
+            permisos: permisosFormateados
         };
         next();
     }
     catch (error) {
+        console.error("Error en validarTokenConPermisos:", error);
         return res.status(401).json({ msg: "Token inválido o vencido" });
     }
 });
