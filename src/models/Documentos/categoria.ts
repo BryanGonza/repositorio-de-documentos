@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../database/conexion";
 
+
 export const categoria = sequelize.define(
     'categoria',
     {

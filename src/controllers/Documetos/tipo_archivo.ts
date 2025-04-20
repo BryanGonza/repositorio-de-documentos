@@ -24,7 +24,7 @@ export const createTipo_archivo = async (req: Request, res: Response) => {
 };
 
 // Obtener todos los registros
- 
+
 export const getTipo_archivo = async (req: Request, res: Response) => {
     const Listado_Tipo_Archivo = await tipo_archivo.findAll();
     res.json({Listado_Tipo_Archivo})

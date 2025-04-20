@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../database/conexion";
-
+import { Model } from "sequelize/types";
 export const caracteristica = sequelize.define(
     'caracteristica',
     {

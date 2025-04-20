@@ -13,7 +13,7 @@ exports.s_categoria = conexion_1.default.define('sub_categoria', {
         autoIncrement: true,
         allowNull: false
     },
-    ID_CATEGORIA: { type: sequelize_1.DataTypes.INTEGER, unique: true },
+    ID_CATEGORIA: { type: sequelize_1.DataTypes.INTEGER, allowNull: true },
     SUB_CATEGORIA: { type: sequelize_1.DataTypes.INTEGER, allowNull: true },
     ESTADO: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true },
 }, {

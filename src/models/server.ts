@@ -15,6 +15,10 @@ import  rFacultad  from "../routes/facultad";
 import  rDepartamentos  from "../routes/departamentos";
 import  rClases  from "../routes/clase";
 import  rTipoDocumento  from "../routes/tipo_documento";
+import  rTipoArchivo  from "../routes/tipo_archivo";
+import  rTipoCaracteristica  from "../routes/tipo_caracteristica";
+import  rCategotia  from "../routes/categoria";
+import rSubCategoria from "../routes/s_categoria";
 //Modelos
 import {ms_objetos} from './objetos';
 import {estado} from './estado';
@@ -27,6 +31,10 @@ import { Facultad } from "./UNAH/facultad";
 import { departamentos } from "./UNAH/departamentos";
 import { clases } from "./UNAH/clase";
 import { tipo_documento } from "./Documentos/tipo_documento";
+import { tipo_archivo } from "./Documentos/tipo_archivo";
+import { tipo_caracteristica } from "./Documentos/tipo_caracteristica";
+import { categoria } from "../models/Documentos/categoria";
+import { s_categoria } from "../models/Documentos/s_categoria";
 
 
 import sequelize from "../database/conexion";
@@ -59,6 +67,10 @@ class Server {
     this.app.use(rDepartamentos);
     this.app.use(rClases);
     this.app.use(rTipoDocumento);
+    this.app.use(rTipoArchivo);
+    this.app.use(rTipoCaracteristica);
+    this.app.use(rCategotia);
+    this.app.use(rSubCategoria);
   }
 
   middlewares() {
@@ -94,6 +106,10 @@ class Server {
       await departamentos.sync();
       await clases.sync();
       await tipo_documento.sync();
+      await tipo_archivo.sync();
+      await tipo_caracteristica.sync();
+      await categoria.sync();
+      await s_categoria.sync();
    
       console.log("Conectado ;)");
     } catch (error) {

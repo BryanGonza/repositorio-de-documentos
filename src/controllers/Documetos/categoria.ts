@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import {  categoria } from "../models/categoria";
+import {  categoria } from "../../models/Documentos/categoria";
 
 // Insertar 
 export const createCategoria= async (req: Request, res: Response) => {

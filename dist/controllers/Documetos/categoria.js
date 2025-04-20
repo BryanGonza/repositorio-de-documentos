@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteCategoria = exports.updateCategoria = exports.getCategoria = exports.createCategoria = void 0;
-const categoria_1 = require("../models/categoria");
+const categoria_1 = require("../../models/Documentos/categoria");
 // Insertar 
 const createCategoria = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { CATEGORIA, ESTADO } = req.body;

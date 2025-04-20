@@ -11,7 +11,7 @@ export const s_categoria = sequelize.define(
             autoIncrement: true,
             allowNull: false
         },
-        ID_CATEGORIA: {type: DataTypes.INTEGER,unique: true},
+        ID_CATEGORIA: {type: DataTypes.INTEGER,allowNull: true},
         SUB_CATEGORIA: {type: DataTypes.INTEGER,allowNull: true},
         ESTADO: {type: DataTypes.BOOLEAN,allowNull: true},
     },

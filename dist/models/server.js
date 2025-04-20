@@ -28,6 +28,10 @@ const facultad_1 = __importDefault(require("../routes/facultad"));
 const departamentos_1 = __importDefault(require("../routes/departamentos"));
 const clase_1 = __importDefault(require("../routes/clase"));
 const tipo_documento_1 = __importDefault(require("../routes/tipo_documento"));
+const tipo_archivo_1 = __importDefault(require("../routes/tipo_archivo"));
+const tipo_caracteristica_1 = __importDefault(require("../routes/tipo_caracteristica"));
+const categoria_1 = __importDefault(require("../routes/categoria"));
+const s_categoria_1 = __importDefault(require("../routes/s_categoria"));
 //Modelos
 const objetos_2 = require("./objetos");
 const estado_2 = require("./estado");
@@ -40,6 +44,10 @@ const facultad_2 = require("./UNAH/facultad");
 const departamentos_2 = require("./UNAH/departamentos");
 const clase_2 = require("./UNAH/clase");
 const tipo_documento_2 = require("./Documentos/tipo_documento");
+const tipo_archivo_2 = require("./Documentos/tipo_archivo");
+const tipo_caracteristica_2 = require("./Documentos/tipo_caracteristica");
+const categoria_2 = require("../models/Documentos/categoria");
+const s_categoria_2 = require("../models/Documentos/s_categoria");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -62,6 +70,10 @@ class Server {
         this.app.use(departamentos_1.default);
         this.app.use(clase_1.default);
         this.app.use(tipo_documento_1.default);
+        this.app.use(tipo_archivo_1.default);
+        this.app.use(tipo_caracteristica_1.default);
+        this.app.use(categoria_1.default);
+        this.app.use(s_categoria_1.default);
     }
     middlewares() {
         // Configurar CORS para aceptar solicitudes desde http://localhost:4200
@@ -92,6 +104,10 @@ class Server {
                 yield departamentos_2.departamentos.sync();
                 yield clase_2.clases.sync();
                 yield tipo_documento_2.tipo_documento.sync();
+                yield tipo_archivo_2.tipo_archivo.sync();
+                yield tipo_caracteristica_2.tipo_caracteristica.sync();
+                yield categoria_2.categoria.sync();
+                yield s_categoria_2.s_categoria.sync();
                 console.log("Conectado ;)");
             }
             catch (error) {
