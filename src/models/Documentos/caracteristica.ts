@@ -15,6 +15,7 @@ export const caracteristica = sequelize.define(
         VALORES_PREDETERMINADOS: {type: DataTypes.BOOLEAN,allowNull: true}
     },
     {
+        
         timestamps: false,
         tableName: 'caracteristica',
         freezeTableName: true,

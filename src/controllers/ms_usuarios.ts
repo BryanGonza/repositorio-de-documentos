@@ -149,11 +149,24 @@ export const login = async (req: Request, res: Response) => {
       return res.status(500).json({ msg: "No se encontró el rol del usuario" });
     }
 
+    const [datosUsuario]: any = await sequelize.query(
+      "SELECT ID_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;",
+      {
+        replacements: [CORREO_ELECTRONICO],
+      }
+    );
+    
+    if (!datosUsuario || datosUsuario.length === 0) {
+      return res.status(500).json({ msg: "No se encontró el ID del usuario" });
+    }
+    
+    const idUsuario = datosUsuario[0].ID_USUARIO;
     const nombreRol = rolUsuario[0].ROL;
 
     // generar token JWT 
     const token = jwt.sign(
       {
+        id: idUsuario,  
         CORREO_ELECTRONICO,
         rol: idRol, // Aquí usas el ID numérico del rol
       },

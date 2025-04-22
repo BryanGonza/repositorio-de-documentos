@@ -19,6 +19,8 @@ import  rTipoArchivo  from "../routes/tipo_archivo";
 import  rTipoCaracteristica  from "../routes/tipo_caracteristica";
 import  rCategotia  from "../routes/categoria";
 import rSubCategoria from "../routes/s_categoria";
+import rCaracteristica from "../routes/caracteristica"
+import  rVersion from "../routes/version";
 //Modelos
 import {ms_objetos} from './objetos';
 import {estado} from './estado';
@@ -35,6 +37,10 @@ import { tipo_archivo } from "./Documentos/tipo_archivo";
 import { tipo_caracteristica } from "./Documentos/tipo_caracteristica";
 import { categoria } from "../models/Documentos/categoria";
 import { s_categoria } from "../models/Documentos/s_categoria";
+import { caracteristica } from "../models/Documentos/caracteristica";
+import { version } from "../models/Documentos/version";
+
+
 
 
 import sequelize from "../database/conexion";
@@ -71,6 +77,9 @@ class Server {
     this.app.use(rTipoCaracteristica);
     this.app.use(rCategotia);
     this.app.use(rSubCategoria);
+    this.app.use(rCaracteristica);
+    this.app.use(rVersion);
+
   }
 
   middlewares() {
@@ -110,6 +119,9 @@ class Server {
       await tipo_caracteristica.sync();
       await categoria.sync();
       await s_categoria.sync();
+      await caracteristica.sync();
+      await version.sync();
+
    
       console.log("Conectado ;)");
     } catch (error) {

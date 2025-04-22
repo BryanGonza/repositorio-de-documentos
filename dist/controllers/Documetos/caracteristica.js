@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteCaracteristica = exports.updateCaracteristica = exports.getCaracteristica = exports.createCaracteristica = void 0;
-const caracteristica_1 = require("../models/caracteristica");
+const caracteristica_1 = require("../../models/Documentos/caracteristica");
 // Insertar 
 const createCaracteristica = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { ID_TIPO_CARACTERISTICA, CARACTERISTICA, VALORES_PREDETERMINADOS } = req.body;

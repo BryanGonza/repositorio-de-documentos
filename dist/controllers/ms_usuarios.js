@@ -128,9 +128,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!rolUsuario || rolUsuario.length === 0) {
             return res.status(500).json({ msg: "No se encontró el rol del usuario" });
         }
+        const [datosUsuario] = yield conexion_1.default.query("SELECT ID_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
+            replacements: [CORREO_ELECTRONICO],
+        });
+        if (!datosUsuario || datosUsuario.length === 0) {
+            return res.status(500).json({ msg: "No se encontró el ID del usuario" });
+        }
+        const idUsuario = datosUsuario[0].ID_USUARIO;
         const nombreRol = rolUsuario[0].ROL;
         // generar token JWT 
         const token = jsonwebtoken_1.default.sign({
+            id: idUsuario,
             CORREO_ELECTRONICO,
             rol: idRol, // Aquí usas el ID numérico del rol
         }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });

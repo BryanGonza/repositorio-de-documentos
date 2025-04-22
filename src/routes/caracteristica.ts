@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { createCaracteristica, getCaracteristica, updateCaracteristica, deleteCaracteristica } from "../controllers/Documetos/caracteristica";
+import validarTokenConPermisos from "./validartoken";
+import { validarPermiso } from "./validarPermiso";
 
 const router = Router();
 

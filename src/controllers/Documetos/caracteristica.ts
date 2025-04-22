@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import {  caracteristica } from "../models/caracteristica";
+import {  caracteristica } from "../../models/Documentos/caracteristica";
 
 // Insertar 
 export const createCaracteristica= async (req: Request, res: Response) => {
