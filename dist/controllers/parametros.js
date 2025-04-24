@@ -8,16 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getParametros = exports.updateParametros = exports.deleteParametro = exports.CrearParametro = void 0;
 const parametros_1 = require("../models/parametros");
+const models_1 = require("../models");
 const CrearParametro = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS } = req.body;
+    const { PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS, ID_USUARIO } = req.body;
     try {
         parametros_1.parametros.create({
             PARAMETRO: PARAMETRO.toUpperCase(),
             VALOR: VALOR.toUpperCase(),
             ADMIN_INTENTOS_INVALIDOS: ADMIN_INTENTOS_INVALIDOS,
+            ID_USUARIO: ID_USUARIO,
             FECHA_CREACION: new Date(),
             FECHA_MODIFICACION: new Date(),
         });
@@ -73,6 +86,7 @@ const updateParametros = (req, res) => __awaiter(void 0, void 0, void 0, functio
             PARAMETRO: PARAMETRO ? PARAMETRO.toUpperCase() : parametro.PARAMETRO,
             VALOR: VALOR ? VALOR.toUpperCase() : parametro.VALOR,
             ADMIN_INTENTOS_INVALIDOS: ADMIN_INTENTOS_INVALIDOS !== null && ADMIN_INTENTOS_INVALIDOS !== void 0 ? ADMIN_INTENTOS_INVALIDOS : parametro.ADMIN_INTENTOS_INVALIDOS,
+            ID_USUARIO: ID_USUARIO !== null && ID_USUARIO !== void 0 ? ID_USUARIO : parametro.ID_USUARIO,
             FECHA_MODIFICACION: FECHA_MODIFICACION !== null && FECHA_MODIFICACION !== void 0 ? FECHA_MODIFICACION : new Date(),
         });
         res.status(200).json({
@@ -89,7 +103,26 @@ const updateParametros = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.updateParametros = updateParametros;
 //Get parametros
 const getParametros = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const ListParametros = yield parametros_1.parametros.findAll();
-    res.json({ ListParametros });
+    try {
+        const ListParametros = yield parametros_1.parametros.findAll({
+            include: [
+                {
+                    model: models_1.ms_usuarios,
+                    attributes: ['CORREO_ELECTRONICO'],
+                },
+            ],
+        });
+        // Aplanar el resultado y eliminar ms_usuario
+        const parametrosConCorreo = ListParametros.map((parametro) => {
+            const plain = parametro.get({ plain: true });
+            const { ms_usuario } = plain, resto = __rest(plain, ["ms_usuario"]); // Quitamos ms_usuario
+            return Object.assign(Object.assign({}, resto), { CORREO_ELECTRONICO: (ms_usuario === null || ms_usuario === void 0 ? void 0 : ms_usuario.CORREO_ELECTRONICO) || null });
+        });
+        res.json({ ListParametros: parametrosConCorreo });
+    }
+    catch (error) {
+        console.error('Error al obtener parámetros:', error);
+        res.status(500).json({ msg: 'Error del servidor' });
+    }
 });
 exports.getParametros = getParametros;

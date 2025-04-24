@@ -34,6 +34,7 @@ const categoria_1 = __importDefault(require("../routes/categoria"));
 const s_categoria_1 = __importDefault(require("../routes/s_categoria"));
 const caracteristica_1 = __importDefault(require("../routes/caracteristica"));
 const version_1 = __importDefault(require("../routes/version"));
+const estructura_archivos_1 = __importDefault(require("../routes/estructura_archivos"));
 //Modelos
 const objetos_2 = require("./objetos");
 const estado_2 = require("./estado");
@@ -52,10 +53,11 @@ const categoria_2 = require("../models/Documentos/categoria");
 const s_categoria_2 = require("../models/Documentos/s_categoria");
 const caracteristica_2 = require("../models/Documentos/caracteristica");
 const version_2 = require("../models/Documentos/version");
+const estructura_archivos_2 = require("../models/Documentos/estructura_archivos");
 class Server {
-    constructor() {
+    constructor(port) {
         this.app = (0, express_1.default)();
-        this.port = process.env.Port || "3016";
+        this.port = port;
         this.middlewares();
         this.router();
         this.DBconex();
@@ -80,6 +82,7 @@ class Server {
         this.app.use(s_categoria_1.default);
         this.app.use(caracteristica_1.default);
         this.app.use(version_1.default);
+        this.app.use(estructura_archivos_1.default);
     }
     middlewares() {
         // Configurar CORS para aceptar solicitudes desde http://localhost:4200
@@ -116,6 +119,7 @@ class Server {
                 yield s_categoria_2.s_categoria.sync();
                 yield caracteristica_2.caracteristica.sync();
                 yield version_2.version.sync();
+                yield estructura_archivos_2.estructura_archivos.sync();
                 console.log("Conectado ;)");
             }
             catch (error) {

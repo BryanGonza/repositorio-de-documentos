@@ -8,15 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const puerto_1 = require("./models/puerto");
-const server_1 = __importDefault(require("./models/server"));
-(() => __awaiter(void 0, void 0, void 0, function* () {
-    const puerto = yield (0, puerto_1.obtenerPuertoDesdeBD)();
-    const server = new server_1.default(puerto);
-}))();
+exports.obtenerPuertoDesdeBD = void 0;
+// src/config/puerto.ts
+const sequelize_1 = require("sequelize");
+const parametros_1 = require("../models/parametros");
+const obtenerPuertoDesdeBD = () => __awaiter(void 0, void 0, void 0, function* () {
+    const resultado = yield parametros_1.parametros.findOne({
+        where: {
+            PARAMETRO: {
+                [sequelize_1.Op.like]: '%PUERTO%BACKEND%',
+            },
+        },
+    });
+    return Number(resultado === null || resultado === void 0 ? void 0 : resultado.VALOR) || 3016;
+});
+exports.obtenerPuertoDesdeBD = obtenerPuertoDesdeBD;

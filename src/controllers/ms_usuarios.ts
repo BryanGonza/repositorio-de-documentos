@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import sequelize from "../database/conexion";
 import { configurarTransporter } from "../controllers/emailService";
 import { documentos } from "../models/Documentos/Documentos.model";
+import { parametros } from '../models/parametros'; 
 
 //Registrar un usuario
 export const registrerUser = async (req: Request, res: Response) => {
@@ -159,10 +160,24 @@ export const login = async (req: Request, res: Response) => {
     if (!datosUsuario || datosUsuario.length === 0) {
       return res.status(500).json({ msg: "No se encontró el ID del usuario" });
     }
-    
+    const expParam = await parametros.findOne({
+      where: {
+        [Op.and]: [
+          { PARAMETRO: { [Op.like]: '%EXPIRACION%' } },
+          { PARAMETRO: { [Op.like]: '%SESION%'      } },
+          { PARAMETRO: { [Op.like]: '%HORAS%'       } },
+        ]
+      }
+    });
     const idUsuario = datosUsuario[0].ID_USUARIO;
     const nombreRol = rolUsuario[0].ROL;
 
+    const horas = expParam ? Number(expParam.getDataValue('VALOR')) : 1;
+    const expiresInSegundos = horas * 3600;
+    const secretKey: jwt.Secret = process.env.Secret_key || 'Repositorio_Documentos_2025';
+  const signOptions: jwt.SignOptions = { expiresIn: expiresInSegundos };
+
+    
     // generar token JWT 
     const token = jwt.sign(
       {
@@ -170,8 +185,8 @@ export const login = async (req: Request, res: Response) => {
         CORREO_ELECTRONICO,
         rol: idRol, // Aquí usas el ID numérico del rol
       },
-      process.env.Secret_key || "Repositorio_Documentos_2025",
-      { expiresIn: "1h" }
+      secretKey,
+      signOptions
     );
 
  

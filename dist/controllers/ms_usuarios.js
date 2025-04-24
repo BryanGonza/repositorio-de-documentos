@@ -31,6 +31,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const conexion_1 = __importDefault(require("../database/conexion"));
 const emailService_1 = require("../controllers/emailService");
 const Documentos_model_1 = require("../models/Documentos/Documentos.model");
+const parametros_1 = require("../models/parametros");
 //Registrar un usuario
 const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { ID_USUARIO, ID_DEPARTAMENTO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
@@ -134,14 +135,27 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!datosUsuario || datosUsuario.length === 0) {
             return res.status(500).json({ msg: "No se encontró el ID del usuario" });
         }
+        const expParam = yield parametros_1.parametros.findOne({
+            where: {
+                [sequelize_1.Op.and]: [
+                    { PARAMETRO: { [sequelize_1.Op.like]: '%EXPIRACION%' } },
+                    { PARAMETRO: { [sequelize_1.Op.like]: '%SESION%' } },
+                    { PARAMETRO: { [sequelize_1.Op.like]: '%HORAS%' } },
+                ]
+            }
+        });
         const idUsuario = datosUsuario[0].ID_USUARIO;
         const nombreRol = rolUsuario[0].ROL;
+        const horas = expParam ? Number(expParam.getDataValue('VALOR')) : 1;
+        const expiresInSegundos = horas * 3600;
+        const secretKey = process.env.Secret_key || 'Repositorio_Documentos_2025';
+        const signOptions = { expiresIn: expiresInSegundos };
         // generar token JWT 
         const token = jsonwebtoken_1.default.sign({
             id: idUsuario,
             CORREO_ELECTRONICO,
             rol: idRol, // Aquí usas el ID numérico del rol
-        }, process.env.Secret_key || "Repositorio_Documentos_2025", { expiresIn: "1h" });
+        }, secretKey, signOptions);
         return res.json({
             success: true,
             msg: "Inicio de sesión exitoso",

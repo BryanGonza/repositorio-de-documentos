@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { parametros } from "../models/parametros";
+import { ms_usuarios } from "../models";
 
 export const CrearParametro = async (req: Request, res: Response) => {
-  const { PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS } = req.body;
+  const { PARAMETRO, VALOR, ADMIN_INTENTOS_INVALIDOS, ID_USUARIO } = req.body;
 
   
 
@@ -11,6 +12,7 @@ export const CrearParametro = async (req: Request, res: Response) => {
       PARAMETRO: PARAMETRO.toUpperCase(),
       VALOR: VALOR.toUpperCase(),
       ADMIN_INTENTOS_INVALIDOS: ADMIN_INTENTOS_INVALIDOS,
+      ID_USUARIO: ID_USUARIO, 
       FECHA_CREACION: new Date(),
       FECHA_MODIFICACION: new Date(),
     });
@@ -77,6 +79,7 @@ export const updateParametros = async (req: Request, res: Response) => {
       VALOR: VALOR ? VALOR.toUpperCase() : parametro.VALOR,
       ADMIN_INTENTOS_INVALIDOS:
         ADMIN_INTENTOS_INVALIDOS ?? parametro.ADMIN_INTENTOS_INVALIDOS,
+      ID_USUARIO: ID_USUARIO ?? parametro.ID_USUARIO,
       FECHA_MODIFICACION: FECHA_MODIFICACION ?? new Date(),
     });
 
@@ -90,10 +93,36 @@ export const updateParametros = async (req: Request, res: Response) => {
     });
   }
 };
-
+interface ParametroExtendido {
+  get: (options?: { plain: boolean }) => any;
+}
 //Get parametros
 export const getParametros = async (req: Request, res: Response) => {
-  const ListParametros = await parametros.findAll();
-  res.json({ ListParametros });
+  try {
+    const ListParametros = await parametros.findAll({
+      include: [
+        {
+          model: ms_usuarios,
+          attributes: ['CORREO_ELECTRONICO'],
+        },
+      ],
+    });
+
+    // Aplanar el resultado y eliminar ms_usuario
+    const parametrosConCorreo = ListParametros.map((parametro: ParametroExtendido) => {
+      const plain = parametro.get({ plain: true });
+      const { ms_usuario, ...resto } = plain; // Quitamos ms_usuario
+
+      return {
+        ...resto,
+        CORREO_ELECTRONICO: ms_usuario?.CORREO_ELECTRONICO || null,
+      };
+    });
+
+    res.json({ ListParametros: parametrosConCorreo });
+  } catch (error) {
+    console.error('Error al obtener parámetros:', error);
+    res.status(500).json({ msg: 'Error del servidor' });
+  }
 };
 

@@ -21,6 +21,7 @@ import  rCategotia  from "../routes/categoria";
 import rSubCategoria from "../routes/s_categoria";
 import rCaracteristica from "../routes/caracteristica"
 import  rVersion from "../routes/version";
+import  rEstructuraArchivos  from "../routes/estructura_archivos";
 //Modelos
 import {ms_objetos} from './objetos';
 import {estado} from './estado';
@@ -39,6 +40,7 @@ import { categoria } from "../models/Documentos/categoria";
 import { s_categoria } from "../models/Documentos/s_categoria";
 import { caracteristica } from "../models/Documentos/caracteristica";
 import { version } from "../models/Documentos/version";
+import { estructura_archivos } from "../models/Documentos/estructura_archivos";
 
 
 
@@ -48,11 +50,11 @@ import dotenv from "dotenv"
 
 class Server {
   private app: Application;
-  private port: string;
+  private port: number;
 
-  constructor() {
+  constructor(port: number) {
     this.app = express();
-    this.port = process.env.Port || "3016";
+    this.port = port;
     this.middlewares();
     this.router();
     this.DBconex();
@@ -79,6 +81,8 @@ class Server {
     this.app.use(rSubCategoria);
     this.app.use(rCaracteristica);
     this.app.use(rVersion);
+    this.app.use(rEstructuraArchivos);
+
 
   }
 
@@ -121,6 +125,7 @@ class Server {
       await s_categoria.sync();
       await caracteristica.sync();
       await version.sync();
+      await estructura_archivos.sync();
 
    
       console.log("Conectado ;)");

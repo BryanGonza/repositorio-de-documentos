@@ -1,11 +1,17 @@
 // models/index.ts
 import { permisos } from './permisos';
 import { ms_objetos } from './objetos';
+import { parametros } from './parametros';
+import { ms_usuarios } from './ms_usuarios';
 
-// Ya definiste la asociación en permisos.ts, pero si querés también definir la inversa:
 ms_objetos.hasMany(permisos, {
   foreignKey: 'ID_OBJETO',
   as: 'permisos'
 });
 
-export { permisos, ms_objetos };
+
+parametros.belongsTo(ms_usuarios, {
+  foreignKey: 'ID_USUARIO',
+  targetKey: 'ID_USUARIO',
+});
+export { permisos, ms_objetos, parametros, ms_usuarios };

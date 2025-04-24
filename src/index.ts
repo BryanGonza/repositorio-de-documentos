@@ -1,5 +1,11 @@
-import Server from "./models/server";
 import dotenv from "dotenv";
-const server = new Server();
-dotenv.config();
-import sequelize from "./database/conexion";
+dotenv.config(); 
+
+import { obtenerPuertoDesdeBD } from './models/puerto'
+import Server from './models/server';
+import sequelize from './database/conexion';
+
+(async () => {
+  const puerto = await obtenerPuertoDesdeBD();
+  const server = new Server(puerto); 
+})();
