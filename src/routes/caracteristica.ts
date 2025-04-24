@@ -5,10 +5,10 @@ import { validarPermiso } from "./validarPermiso";
 
 const router = Router();
 
-router.post("/api/caracteristica/createCaracteristica", createCaracteristica);
-router.get("/api/caracteristica/getCaracteristica", getCaracteristica);
-router.put("/api/caracteristica/updateCaracteristica", updateCaracteristica);
-router.delete("/api/caracteristica/deleteCaracteristica", deleteCaracteristica);
+router.post("/api/caracteristica/createCaracteristica", validarTokenConPermisos, validarPermiso('insercion', 'MANTENIMIENTO CARACTERISTICA'), createCaracteristica);
+router.get("/api/caracteristica/getCaracteristica", validarTokenConPermisos, validarPermiso('consulta', 'MANTENIMIENTO CARACTERISTICA'), getCaracteristica);
+router.put("/api/caracteristica/updateCaracteristica", validarTokenConPermisos, validarPermiso('actualizacion', 'MANTENIMIENTO CARACTERISTICA'), updateCaracteristica);
+router.delete("/api/caracteristica/deleteCaracteristica", validarTokenConPermisos, validarPermiso('eliminacion', 'MANTENIMIENTO CARACTERISTICA'), deleteCaracteristica);
 
 
 export default router;

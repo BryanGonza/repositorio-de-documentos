@@ -8,7 +8,7 @@ const validarPermiso_1 = require("./validarPermiso");
 const validartoken_1 = require("../routes/validartoken");
 const router = (0, express_1.Router)();
 router.post("/api/Documentos/subirDc", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('insercion', 'DOCUMENTO'), documetos_midd_1.cargas, documentos_1.SubirDoc);
-router.get("/api/Documentos/MostrarDocuemtos", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('consulta', 'OBJETO'), documentos_1.getDocumetos);
+router.get("/api/Documentos/MostrarDocuemtos", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('consulta', 'DOCUMENTO'), documentos_1.getDocumetos);
 router.delete("/api/Documentos/EliminarDocumento/:idDocumento", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('eliminacion', 'DOCUMENTO'), documentos_1.EliminarDoc);
 router.get("/api/Documentos/correo/:idUsuario", validartoken_1.validarTokenConPermisos, documentos_1.getCorreoUsuario);
 router.get("/api/Documentos/DocUser/:idUsuario", validartoken_1.validarTokenConPermisos, documentos_1.getDocumentosPorUsuario);

@@ -5,10 +5,10 @@ import validarTokenConPermisos from "./validartoken";
 
 const router = Router();
 // validarTokenConPermisos, validarPermiso('insercion', 'ESTRUCTURA DE ARCHIVOS'),
-router.post("/api/estructura_archivos/createEstructura",  createEstructura);
-router.get("/api/estructura_archivos/getEstructura", getEstructura);
-router.put("/api/estructura_archivos/updateEstructura", updateEstructura);
-router.delete("/api/estructura_archivos/deleteEstructura", deleteEstructura);
+router.post("/api/estructura_archivos/createEstructura",   validarTokenConPermisos, validarPermiso('insercion', 'ESTRUCTURA DE ARCHIVOS'), createEstructura);
+router.get("/api/estructura_archivos/getEstructura", validarTokenConPermisos, validarPermiso('consulta', 'ESTRUCTURA DE ARCHIVOS'), getEstructura);
+router.put("/api/estructura_archivos/updateEstructura", validarTokenConPermisos, validarPermiso('actualizacion', 'ESTRUCTURA DE ARCHIVOS'), updateEstructura);
+router.delete("/api/estructura_archivos/deleteEstructura", validarTokenConPermisos, validarPermiso('eliminacion', 'ESTRUCTURA DE ARCHIVOS'), deleteEstructura);
 
 
 export default router;
