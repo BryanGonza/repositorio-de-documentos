@@ -41,7 +41,9 @@ import { s_categoria } from "../models/Documentos/s_categoria";
 import { caracteristica } from "../models/Documentos/caracteristica";
 import { version } from "../models/Documentos/version";
 import { estructura_archivos } from "../models/Documentos/estructura_archivos";
-
+import { documentoDet } from "./Documentos/docuemtosDet";
+import { documentoVersiones } from "./Documentos/docVersion";
+import { tipoDocumentoCaracteristica } from "./Documentos/TipoDocCaracteristica";
 
 
 
@@ -126,6 +128,9 @@ class Server {
       await caracteristica.sync();
       await version.sync();
       await estructura_archivos.sync();
+      await documentoDet.sync();
+      await documentoVersiones.sync();
+      await tipoDocumentoCaracteristica.sync();
 
    
       console.log("Conectado ;)");

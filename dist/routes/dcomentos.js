@@ -12,4 +12,5 @@ router.get("/api/Documentos/MostrarDocuemtos", validartoken_1.validarTokenConPer
 router.delete("/api/Documentos/EliminarDocumento/:idDocumento", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('eliminacion', 'DOCUMENTO'), documentos_1.EliminarDoc);
 router.get("/api/Documentos/correo/:idUsuario", validartoken_1.validarTokenConPermisos, documentos_1.getCorreoUsuario);
 router.get("/api/Documentos/DocUser/:idUsuario", validartoken_1.validarTokenConPermisos, documentos_1.getDocumentosPorUsuario);
+router.get("/api/Documentos/getDocumentoDetalle/:id", documentos_1.getDocumentoDetalle);
 exports.default = router;

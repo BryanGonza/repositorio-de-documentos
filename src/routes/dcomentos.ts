@@ -1,7 +1,7 @@
 import { Router } from "express";
 // import  { SubirDoc} from "../controllers/documentos";
 import { cargas} from "../middlewares/documetos.midd";
-import { EliminarDoc, getCorreoUsuario, getDocumentosPorUsuario, getDocumetos, SubirDoc } from "../controllers/Documetos/documentos";
+import { EliminarDoc, getCorreoUsuario, getDocumentoDetalle, getDocumentosPorUsuario, getDocumetos, SubirDoc } from "../controllers/Documetos/documentos";
 import { validarPermiso } from "./validarPermiso";
 import  { validarTokenConPermisos } from "../routes/validartoken";
 const router = Router();
@@ -10,5 +10,6 @@ router.get("/api/Documentos/MostrarDocuemtos",  validarTokenConPermisos, validar
 router.delete("/api/Documentos/EliminarDocumento/:idDocumento", validarTokenConPermisos, validarPermiso('eliminacion', 'DOCUMENTO') EliminarDoc);
 router.get("/api/Documentos/correo/:idUsuario", validarTokenConPermisos, getCorreoUsuario);
 router.get("/api/Documentos/DocUser/:idUsuario",validarTokenConPermisos, getDocumentosPorUsuario);
+router.get("/api/Documentos/getDocumentoDetalle/:id", getDocumentoDetalle);
 
 export default router;

@@ -54,6 +54,9 @@ const s_categoria_2 = require("../models/Documentos/s_categoria");
 const caracteristica_2 = require("../models/Documentos/caracteristica");
 const version_2 = require("../models/Documentos/version");
 const estructura_archivos_2 = require("../models/Documentos/estructura_archivos");
+const docuemtosDet_1 = require("./Documentos/docuemtosDet");
+const docVersion_1 = require("./Documentos/docVersion");
+const TipoDocCaracteristica_1 = require("./Documentos/TipoDocCaracteristica");
 class Server {
     constructor(port) {
         this.app = (0, express_1.default)();
@@ -120,6 +123,9 @@ class Server {
                 yield caracteristica_2.caracteristica.sync();
                 yield version_2.version.sync();
                 yield estructura_archivos_2.estructura_archivos.sync();
+                yield docuemtosDet_1.documentoDet.sync();
+                yield docVersion_1.documentoVersiones.sync();
+                yield TipoDocCaracteristica_1.tipoDocumentoCaracteristica.sync();
                 console.log("Conectado ;)");
             }
             catch (error) {

@@ -7,16 +7,26 @@ import fs from "fs";
 import { documentos } from "../../models/Documentos/Documentos.model";
 import { ms_usuarios } from "../../models/ms_usuarios";
 import { log } from "console";
+import { version } from "../../models/Documentos/version";
+import { documentoVersiones } from "../../models/Documentos/docVersion";
+import sequelize from "../../database/conexion";
+import { documentoDet } from "../../models/Documentos/docuemtosDet";
+import { tipoDocumentoCaracteristica } from "../../models/Documentos/TipoDocCaracteristica";
+import { departamentos } from "../../models/UNAH/departamentos";
+import { categoria } from "../../models/Documentos/categoria";
+import { s_categoria } from "../../models/Documentos/s_categoria";
+import {clases} from "../../models/UNAH/clase";
+import { tipo_archivo } from "../../models/Documentos/tipo_archivo";
+import { caracteristica } from "../../models/Documentos/caracteristica";
 
 dotenv.config();
 
-// Ruta al archivo credentials.json
 const KEYFILEPATH = path.join(__dirname, "../credential.json");
 
-// Scopes necesarios para acceder a Google Drive
+// scopes necesarios para acceder a Google Drive
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
-// Autenticación con Google Drive
+// Autenticacion con Google Drive
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
   scopes: SCOPES,
@@ -24,17 +34,34 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: "v3", auth });
 export const SubirDoc = async (req: Request, res: Response) => {
+  if (!req.file) return res.status(400).json({ msg: "Error al subir el archivo" });
+
+  // Extraemos los campos del body
+  const {
+    ID_USUARIO,
+    ES_PUBLICO,
+    DESCRIPCION,
+    NOMBRE,
+    ID_DEPARTAMENTO,
+    ID_CLASE,
+    ID_ESTRUCTURA_ARCHIVOS,
+    ID_TIPO_ARCHIVO,
+    ID_CATEGORIA,
+    ID_SUB_CATEGORIA,
+    ID_CARACTERISTICA,
+    VALOR_CARACTERISTICA
+  } = req.body;
+
+
   console.log(req.file?.originalname);
   if (!req.file) {
     return res.status(400).json({ msg: "Error al subir el archivo" });
   }
-
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-  if (!folderId) {
-    return res.status(500).json({ msg: "GOOGLE_DRIVE_FOLDER_ID no está definido" });
-  }
-
-  const fileMetadata = {
+   if (!folderId) {
+      return res.status(500).json({ msg: "GOOGLE_DRIVE_FOLDER_ID no está definido" });
+   }
+   const fileMetadata = {
     name: req.file.originalname,
     parents: [folderId],
   };
@@ -44,86 +71,236 @@ export const SubirDoc = async (req: Request, res: Response) => {
     body: fs.createReadStream(req.file.path), // Leer el archivo temporal
   };
 
+  const t = await sequelize.transaction();
   try {
-    // Subir el archivo a Google Drive
-    const response = await drive.files.create({
-      requestBody: fileMetadata,
-      media: media,
-      fields: "id, webViewLink, webContentLink",
-    });
+    // drive
+    const driveRes = await drive.files.create({ requestBody: fileMetadata, media, fields: "id, webViewLink" });
+    const driveId = driveRes.data.id!;
+    await drive.permissions.create({ fileId: driveId, requestBody: { role: "reader", type: "anyone" } });
 
-    // Verificar que response.data.id sea una cadena
-    if (!response.data.id) {
-      throw new Error("No se pudo obtener el ID del archivo subido.");
-    }
-
-    // Configurar permisos para que el archivo sea accesible públicamente
-    await drive.permissions.create({
-      fileId: response.data.id, // Aquí response.data.id es una cadena
-      requestBody: {
-        role: "reader", // Permiso de solo lectura
-        type: "anyone", // Accesible para cualquier persona con el enlace
-      },
-    });
-
-    const { ID_USUARIO, ES_PUBLICO, DESCRIPCION, NOMBRE } = req.body;
-
-
-    // Guardar la información del archivo en la base de datos
-    await documentos.create({
+    // crear docuemto
+    const doc = await documentos.create({
       ID_USUARIO,
       ID_ESTADO: 1,
       NOMBRE: NOMBRE.toUpperCase(),
-      URL: response.data.webViewLink, // Enlace de visualización
-      URl_DOW:`https://drive.google.com/uc?export=download&id=${response.data.id}`,
+      FORMATO: req.file.originalname.split('.').pop(),
+      URL: driveRes.data.webViewLink,
+      URl_DOW: `https://drive.google.com/uc?export=download&id=${driveId}`,
       FECHA_SUBIDA: new Date(),
-      DRIVE_ID: response.data.id,
+      DRIVE_ID: driveId,
       ES_PUBLICO,
       DESCRIPCION: DESCRIPCION.toUpperCase()
+    }, { transaction: t });
+
+    //crear registro de característica dinámica
+    const docCaract = await tipoDocumentoCaracteristica.create({
+      ID_CARACTERISTICA,
+      ID_DOCUMENTO: doc.ID_DOCUMENTO,
+      VALOR: VALOR_CARACTERISTICA
+    }, { transaction: t });
+
+    // 4) Crear detalle en documentos_det usando la nueva característica
+    const det = await documentoDet.create({
+      ID_DOCUMENTO: doc.ID_DOCUMENTO,
+      ID_DEPARTAMENTO,
+      ID_CLASE,
+      ID_ESTRUCTURA_ARCHIVOS,
+      ID_TIPO_ARCHIVO,
+      ID_TIPO_DOCUMENTO_CARACTERISTICA: docCaract.ID_TIPO_DOCUMENTO_CARACTERISTICA,
+      ID_CATEGORIA,
+      ID_SUB_CATEGORIA,
+      FORMATO: doc.FORMATO,
+      NOMBRE: doc.NOMBRE
+    }, { transaction: t });
+
+    // Generar nueva versión
+    const ver = await version.create({
+      ID_USUARIO,
+      Nombre: `v1 - subida inicial`,
+      Cambios: "Se sube archivo, característica y registro de detalle",
+      Fecha_Actu: new Date()
+    }, { transaction: t });
+
+    await documentoVersiones.create({
+      ID_VERSION: ver.ID_VERSION,
+      ID_DOCUMENTO_DET: det.ID_DOCUMENTO_DET,
+      FECHA_DESDE: new Date(),
+      ESTADO: true,
+      DESCRIPCION: "Versión inicial"
+    }, { transaction: t });
+
+    // Actualizar la versión actual en documentos
+    await documentos.update(
+      { ID_VERSION: ver.ID_VERSION },
+      { where: { ID_DOCUMENTO: doc.ID_DOCUMENTO }, transaction: t }
+    );
+
+    await t.commit();
+    res.status(201).json({ msg: "Documento, característica y detalle registrados con éxito.", documento: doc, detalle: det, version: ver });
+  } catch (err: any) {
+    await t.rollback();
+    console.error(err);
+    res.status(500).json({ msg: "Error al procesar la subida completa", error: err.message });
+  } finally {
+    fs.unlinkSync(req.file.path);
+  }
+};
+//subir documento antes de las modificaciones 
+// export const SubirDoc = async (req: Request, res: Response) => {
+//   console.log(req.file?.originalname);
+//   if (!req.file) {
+//     return res.status(400).json({ msg: "Error al subir el archivo" });
+//   }
+
+//   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+//   if (!folderId) {
+//     return res.status(500).json({ msg: "GOOGLE_DRIVE_FOLDER_ID no está definido" });
+//   }
+
+//   const fileMetadata = {
+//     name: req.file.originalname,
+//     parents: [folderId],
+//   };
+
+//   const media = {
+//     mimeType: req.file.mimetype,
+//     body: fs.createReadStream(req.file.path), // Leer el archivo temporal
+//   };
+
+//   try {
+//     // Subir el archivo a Google Drive
+//     const response = await drive.files.create({
+//       requestBody: fileMetadata,
+//       media: media,
+//       fields: "id, webViewLink, webContentLink",
+//     });
+
+//     // Verificar que response.data.id sea una cadena
+//     if (!response.data.id) {
+//       throw new Error("No se pudo obtener el ID del archivo subido.");
+//     }
+
+//     // Configurar permisos para que el archivo sea accesible públicamente
+//     await drive.permissions.create({
+//       fileId: response.data.id, // Aquí response.data.id es una cadena
+//       requestBody: {
+//         role: "reader", // Permiso de solo lectura
+//         type: "anyone", // Accesible para cualquier persona con el enlace
+//       },
+//     });
+
+//     const { ID_USUARIO, ES_PUBLICO, DESCRIPCION, NOMBRE } = req.body;
+
+
+//     // Guardar la información del archivo en la base de datos
+//     await documentos.create({
+//       ID_USUARIO,
+//       ID_ESTADO: 1,
+//       NOMBRE: NOMBRE.toUpperCase(),
+//       URL: response.data.webViewLink, // Enlace de visualización
+//       URl_DOW:`https://drive.google.com/uc?export=download&id=${response.data.id}`,
+//       FECHA_SUBIDA: new Date(),
+//       DRIVE_ID: response.data.id,
+//       ES_PUBLICO,
+//       DESCRIPCION: DESCRIPCION.toUpperCase()
+//     });
+
+//     // Respuesta exitosa
+//     res.json({
+//       msg: `Documento ${req.file?.originalname} subido correctamente.`,
+//       fileUrl: response.data.webViewLink, // Enlace de visualización
+//       downloadUrl: `https://drive.google.com/uc?export=download&id=${response.data.id}`, // Enlace de descarga directa
+//     });
+//   } catch (error) {
+//     console.error("Error al subir el archivo a Google Drive:", error);
+//     res.status(500).json({ msg: "Error al subir el archivo a Google Drive" });
+//   } finally {
+//     // Eliminar el archivo temporal en cualquier caso
+//     if (req.file) {
+//       fs.unlinkSync(req.file.path);
+//     }
+//   }
+// };
+
+
+
+export const EliminarDoc = async (req: Request, res: Response) => {
+  const { idDocumento } = req.params;
+
+  const t = await sequelize.transaction(); // Iniciar transacción
+
+  try {
+    // Buscar el documento
+    const documento = await documentos.findOne({ where: { ID_DOCUMENTO: idDocumento }, transaction: t });
+
+    if (!documento) {
+      await t.rollback();
+      return res.status(404).json({ msg: "Documento no encontrado" });
+    }
+
+    const fileId = documento.DRIVE_ID;
+
+    // Intentar borrar en Drive
+    try {
+      if (fileId) {
+        await drive.files.delete({ fileId });
+      }
+    } catch (error: any) {
+      if (error.code === 404) {
+        console.warn(`Drive: archivo ${fileId} no existe, continuo borrando DB`);
+      } else {
+        console.error("Error eliminando de Drive:", error);
+        throw new Error("Error eliminando en Drive");
+      }
+    }
+
+    // Buscar todos los detalles vinculados a este documento
+    const detalles = await documentoDet.findAll({
+      where: { ID_DOCUMENTO: idDocumento },
+      attributes: ['ID_DOCUMENTO_DET'],
+      transaction: t,
+      raw: true
+    }) as Array<{ ID_DOCUMENTO_DET: number }>;
+
+    const detalleIds = detalles.map(d => d.ID_DOCUMENTO_DET);
+
+    if (detalleIds.length > 0) {
+      // Primero eliminar versiones vinculadas a los detalles
+      await documentoVersiones.destroy({
+        where: { ID_DOCUMENTO_DET: detalleIds },
+        transaction: t
+      });
+
+      // Luego eliminar los detalles mismos
+      await documentoDet.destroy({
+        where: { ID_DOCUMENTO: idDocumento },
+        transaction: t
+      });
+    }
+
+    // Eliminar las características dinámicas asociadas al documento
+    await tipoDocumentoCaracteristica.destroy({
+      where: { ID_DOCUMENTO: idDocumento },
+      transaction: t
     });
 
-    // Respuesta exitosa
-    res.json({
-      msg: `Documento ${req.file?.originalname} subido correctamente.`,
-      fileUrl: response.data.webViewLink, // Enlace de visualización
-      downloadUrl: `https://drive.google.com/uc?export=download&id=${response.data.id}`, // Enlace de descarga directa
+    // Ahora eliminar el documento principal
+    await documentos.destroy({
+      where: { ID_DOCUMENTO: idDocumento },
+      transaction: t
     });
+
+    await t.commit(); // Confirmar cambios
+    res.json({ msg: "Documento eliminado correctamente" });
+
   } catch (error) {
-    console.error("Error al subir el archivo a Google Drive:", error);
-    res.status(500).json({ msg: "Error al subir el archivo a Google Drive" });
-  } finally {
-    // Eliminar el archivo temporal en cualquier caso
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
+    console.error("Error al eliminar el documento:", error);
+    await t.rollback();
+    res.status(500).json({ msg: "Error al eliminar el documento" });
   }
 };
 
-  export const EliminarDoc = async (req: Request, res: Response) => {
-    const { idDocumento } = req.params;
-    
-    try {
-      // Buscar el documento en la base de datos
-      const documento = await documentos.findOne({ where: { ID_DOCUMENTO: idDocumento } });
-      
-      if (!documento) {
-        return res.status(404).json({ msg: "Documento no encontrado" });
-      }
-      
-      const fileId = documento.DRIVE_ID // ID en drive
-      
-      // Eliminar de Google Drive
-      await drive.files.delete({ fileId });
-      
-      // Eliminar de la base de datos
-      await documentos.destroy({ where: { ID_DOCUMENTO: idDocumento } });
-      
-      res.json({ msg: "Documento eliminado correctamente" });
-    } catch (error) {
-      console.error("Error al eliminar el documento:", error);
-      res.status(500).json({ msg: "Error al eliminar el documento" });
-    }
-  };
+
   export const getDocumetos = async (req: Request, res: Response) => {
     try {
       // Filtrar y ordenar documentos por fecha descendente (más recientes primero)
@@ -142,6 +319,34 @@ export const SubirDoc = async (req: Request, res: Response) => {
       res.status(500).json({ message: 'Error interno del servidor' });
     }
   };
+// GET /api/documentos/:id
+export const getDocumentoDetalle = async (req: Request, res:Response) => {
+  const id = req.params.id;
+  const doc = await documentos.findByPk(id, {
+    include: [
+      {
+        model: documentoDet,
+        as: 'detalles',
+        include: [
+          { model: departamentos,        as: 'departamento',       attributes:['Nombre'] },
+          { model: categoria,            as: 'categoria',         attributes:['Categoria'] },
+          { model: s_categoria,          as: 'subCategoria',      attributes:['Sub_Categoria'] },
+          { model: clases,                as: 'clase',             attributes:['Nombre'] },
+          { model: tipo_archivo,         as: 'tipoArchivo',       attributes:['Tipo_Archivo'] },
+          {
+            model: tipoDocumentoCaracteristica,
+            as: 'caracteristica',
+            attributes:['VALOR'],
+            include: [{ model: caracteristica, as:'def', attributes:['Caracteristica'] }]
+          }
+        ]
+      },
+   
+    ]
+  });
+  if (!doc) return res.status(404).json({ msg: 'No existe ese documento' });
+  res.json({ doc });
+};
 
 export const getCorreoUsuario = async (req: Request, res: Response) => {
   console.log("Parámetros recibidos:", req.params);
