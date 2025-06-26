@@ -18,7 +18,7 @@ export const clases = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'clase',
+        tableName: 'tbl_clase',
         freezeTableName: true,
     }
 );

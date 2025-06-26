@@ -42,7 +42,7 @@ const createPermiso = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.createPermiso = createPermiso;
 // Obtener todos los permisos
 const getPermisos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const ListPermisos = yield permisos_1.permisos.findAll();
+    const ListPermisos = yield permisos_1.permisos.findAll({ order: [['FECHA_CREACION', 'DESC']], });
     res.json({ ListPermisos });
 });
 exports.getPermisos = getPermisos;

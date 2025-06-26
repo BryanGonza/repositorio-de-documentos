@@ -17,7 +17,7 @@ export const s_categoria = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'sub_categoria',
+        tableName: 'tbl_sub_categoria',
         freezeTableName: true,
     }
 );

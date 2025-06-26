@@ -17,7 +17,7 @@ export const caracteristica = sequelize.define(
     {
         
         timestamps: false,
-        tableName: 'caracteristica',
+        tableName: 'tbl_caracteristica',
         freezeTableName: true,
     }
 );

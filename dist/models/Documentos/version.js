@@ -19,6 +19,6 @@ exports.version = conexion_1.default.define('version', {
     FECHA_ACTU: { type: sequelize_1.DataTypes.DATE, allowNull: true },
 }, {
     timestamps: false,
-    tableName: 'version',
+    tableName: 'tbl_version',
     freezeTableName: true,
 });

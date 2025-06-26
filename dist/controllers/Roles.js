@@ -38,7 +38,9 @@ const createRol = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.createRol = createRol;
 // Obtener todos los roles
 const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const ListRoles = yield roles_1.ms_roles.findAll();
+    const ListRoles = yield roles_1.ms_roles.findAll({
+        order: [['FECHA_CREACION', 'DESC']],
+    });
     res.json({ ListRoles });
 });
 exports.getRoles = getRoles;

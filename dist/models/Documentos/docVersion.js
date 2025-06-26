@@ -40,7 +40,7 @@ exports.documentoVersiones = conexion_1.default.define('documentos_versiones', /
         allowNull: true
     }
 }, {
-    tableName: 'documentos_versiones',
+    tableName: 'tbl_documentos_versiones',
     timestamps: false,
     freezeTableName: true
 });

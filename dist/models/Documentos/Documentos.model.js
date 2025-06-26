@@ -29,6 +29,6 @@ exports.documentos = conexion_1.default.define(
     DESCRIPCION: { type: sequelize_1.DataTypes.STRING, allowNull: true }
 }, {
     timestamps: false, // Desactivar createdAt y updatedAt 
-    tableName: 'documentos',
+    tableName: 'tbl_documentos',
     freezeTableName: true,
 });

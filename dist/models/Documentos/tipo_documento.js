@@ -17,6 +17,6 @@ exports.tipo_documento = conexion_1.default.define('tipo_documento', {
     ESTADO: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true },
 }, {
     timestamps: false,
-    tableName: 'tipo_documento',
+    tableName: 'tbl_tipo_documento',
     freezeTableName: true,
 });

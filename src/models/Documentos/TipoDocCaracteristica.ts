@@ -25,7 +25,7 @@ export const tipoDocumentoCaracteristica = sequelize.define(
     }
   },
   {
-    tableName: 'tipo_documento_caracteristica',
+    tableName: 'tbl_tipo_documento_caracteristica',
     timestamps: false,
     freezeTableName: true
   }

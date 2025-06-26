@@ -30,111 +30,95 @@ const sequelize_1 = require("sequelize");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const conexion_1 = __importDefault(require("../database/conexion"));
 const emailService_1 = require("../controllers/emailService");
-const Documentos_model_1 = require("../models/Documentos/Documentos.model");
 const parametros_1 = require("../models/parametros");
 //Registrar un usuario
 const registrerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { ID_USUARIO, ID_DEPARTAMENTO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
-    const user = yield ms_usuarios_1.ms_usuarios.findOne({
-        where: {
-            [sequelize_1.Op.or]: {
-                CORREO_ELECTRONICO: CORREO_ELECTRONICO,
-                NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
-            },
-        },
-    });
-    if (user) {
-        return res.status(400).json({
-            msg: `Ya existe un usuario con email ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
-        });
-    }
-    // console.log("Estoy aqui...");
+    var _a;
+    const { ID_USUARIO, ID_DEPARTAMENTO, NUM_IDENTIDAD, ID_CARGO, DIRECCION_1, DIRECCION_2, USUARIO, NOMBRE_USUARIO, ESTADO_USUARIO, // No se usa directamente
+    CONTRASEÑA, ID_ROL, FECHA_ULTIMA_CONEXION, PREGUNTAS_CONTESTADAS, CREADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, PRIMER_INGRESO, FECHA_VENCIMIENTO, CORREO_ELECTRONICO, } = req.body;
     const CONTRASEÑAHash = yield bcrypt_1.default.hash(CONTRASEÑA, 10);
-    console.log("Datos recibidos:", req.body);
     try {
-        yield ms_usuarios_1.ms_usuarios.create({
-            ID_USUARIO: ID_USUARIO,
-            ID_DEPARTAMENTO: ID_DEPARTAMENTO,
-            NUM_IDENTIDAD: NUM_IDENTIDAD,
-            ID_CARGO: ID_CARGO,
-            DIRECCION_1: DIRECCION_1,
-            DIRECCION_2: DIRECCION_2,
-            USUARIO: USUARIO.toUpperCase(),
-            NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
-            ESTADO_USUARIO: "NUEVO",
-            CONTRASEÑA: CONTRASEÑA.toUpperCase(),
-            ID_ROL: ID_ROL,
-            FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
-            PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS,
-            FECHA_CREACION: new Date(),
-            CREADO_POR: CREADO_POR,
-            FECHA_MODIFICACION: FECHA_MODIFICACION,
-            MODIFICADO_POR: MODIFICADO_POR,
-            PRIMER_INGRESO: PRIMER_INGRESO,
-            FECHA_VENCIMIENTO: FECHA_VENCIMIENTO,
-            CORREO_ELECTRONICO: CORREO_ELECTRONICO.toUpperCase(),
+        // Paso 1: Ejecutar el procedimiento almacenado
+        yield conexion_1.default.query(`CALL registrar_usuario(
+      :ID_DEPARTAMENTO,
+      :NUM_IDENTIDAD,
+      :USUARIO,
+      :NOMBRE_USUARIO,
+      :CONTRASENA,
+      :ID_ROL,
+      :CORREO_ELECTRONICO,
+      @p_EXISTE
+    );`, {
+            replacements: {
+                ID_DEPARTAMENTO,
+                NUM_IDENTIDAD,
+                USUARIO,
+                NOMBRE_USUARIO,
+                CONTRASENA: CONTRASEÑA,
+                ID_ROL,
+                CORREO_ELECTRONICO
+            }
         });
+        // Paso 2: Obtener el valor de @p_EXISTE
+        const [existeResult] = yield conexion_1.default.query(`SELECT @p_EXISTE AS existe;`);
+        const existe = (_a = existeResult[0]) === null || _a === void 0 ? void 0 : _a.existe;
+        if (existe === 1) {
+            return res.status(400).json({
+                msg: `Ya existe un usuario con email ${CORREO_ELECTRONICO} o el número de identidad ${NUM_IDENTIDAD}`,
+            });
+        }
         res.json({
             msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
         });
     }
     catch (error) {
-        console.error("Error en la creación del usuario:", error);
+        console.error("Error al crear usuario:", error);
         res.status(500).json({
             msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
         });
     }
 });
 exports.registrerUser = registrerUser;
-//Get para traer todos los usuarios
 const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const ListUsuarios = yield ms_usuarios_1.ms_usuarios.findAll();
-    res.json({ ListUsuarios });
+    try {
+        const result = yield conexion_1.default.query("CALL obtener_usuarios();");
+        if (!result || result.length === 0) {
+            return res.status(404).json({ msg: "No hay usuarios registrados." });
+        }
+        res.json({ ListUsuarios: result });
+    }
+    catch (error) {
+        console.error("Error al obtener usuarios:", error);
+        res.status(500).json({
+            msg: "Error al obtener la lista de usuarios.",
+        });
+    }
 });
 exports.getUsuarios = getUsuarios;
-// Login de Usuario
+// export const getUsuarios = async (req: Request, res: Response) => {
+//   const ListUsuarios = await ms_usuarios.findAll();
+//   res.json({ ListUsuarios });
+// };
+//Login de usuario
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
     try {
-        const [resultado] = yield conexion_1.default.query("CALL ValidarUsuario(?, ?);", {
+        const [resultado] = yield conexion_1.default.query("CALL ValidarUsuarioCompleto(?, ?);", {
             replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
         });
-        if (!resultado) {
-            return res.status(401).json({ msg: "Credenciales incorrectas" });
+        const datosUsuario = Array.isArray(resultado) ? resultado[0] : resultado;
+        if (!datosUsuario || !datosUsuario.ID_USUARIO) {
+            return res.status(401).json({ success: false, msg: "Credenciales incorrectas" });
         }
-        const [estadoUsuario] = yield conexion_1.default.query("SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
-            replacements: [CORREO_ELECTRONICO],
-        });
-        if (estadoUsuario.length > 0 &&
-            estadoUsuario[0].ESTADO_USUARIO === "NUEVO") {
+        if (datosUsuario.ESTADO_USUARIO === "NUEVO") {
             return res.status(403).json({
                 success: false,
                 msg: "Debe cambiar su contraseña antes de iniciar sesión",
+                requiereCambioContraseña: true
             });
         }
-        const [rolUsuario] = yield conexion_1.default.query(`
-        SELECT r.ID_ROL, r.ROL
-        FROM ms_usuarios u
-        INNER JOIN ms_roles r ON u.ID_ROL = r.ID_ROL
-        WHERE u.CORREO_ELECTRONICO = ?
-        LIMIT 1;
-      `, {
-            replacements: [CORREO_ELECTRONICO],
-        });
-        if (!rolUsuario || rolUsuario.length === 0) {
-            return res.status(500).json({ msg: "No se encontró el rol del usuario" });
-        }
-        const idRol = rolUsuario[0].ID_ROL;
-        // Manejo de caso si no existe registro 
-        if (!rolUsuario || rolUsuario.length === 0) {
-            return res.status(500).json({ msg: "No se encontró el rol del usuario" });
-        }
-        const [datosUsuario] = yield conexion_1.default.query("SELECT ID_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;", {
-            replacements: [CORREO_ELECTRONICO],
-        });
-        if (!datosUsuario || datosUsuario.length === 0) {
-            return res.status(500).json({ msg: "No se encontró el ID del usuario" });
-        }
+        // Generar token JWT 
         const expParam = yield parametros_1.parametros.findOne({
             where: {
                 [sequelize_1.Op.and]: [
@@ -144,32 +128,35 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 ]
             }
         });
-        const idUsuario = datosUsuario[0].ID_USUARIO;
-        const nombreRol = rolUsuario[0].ROL;
-        const horas = expParam ? Number(expParam.getDataValue('VALOR')) : 1;
+        const horas = expParam ? Number(expParam.VALOR) : 1;
         const expiresInSegundos = horas * 3600;
         const secretKey = process.env.Secret_key || 'Repositorio_Documentos_2025';
         const signOptions = { expiresIn: expiresInSegundos };
-        // generar token JWT 
         const token = jsonwebtoken_1.default.sign({
-            id: idUsuario,
+            id: datosUsuario.ID_USUARIO,
             CORREO_ELECTRONICO,
-            rol: idRol, // Aquí usas el ID numérico del rol
+            rol: datosUsuario.ID_ROL,
+            nombreRol: datosUsuario.ROL // Agregado para usar el nombre del rol
         }, secretKey, signOptions);
         return res.json({
             success: true,
             msg: "Inicio de sesión exitoso",
             token,
+            usuario: {
+                id: datosUsuario.ID_USUARIO,
+                rol: datosUsuario.ID_ROL,
+                nombreRol: datosUsuario.ROL
+            }
         });
     }
     catch (error) {
-        if (error.parent && error.parent.sqlState === "45000") {
-            return res
-                .status(400)
-                .json({ msg: error.parent.sqlMessage || "Error en el login" });
+        console.error("Error en login:", error);
+        if (((_a = error.original) === null || _a === void 0 ? void 0 : _a.code) === 'ER_SIGNAL_EXCEPTION') {
+            const mensaje = ((_b = error.original) === null || _b === void 0 ? void 0 : _b.message) || "Error en credenciales";
+            const status = mensaje.includes('bloqueado') ? 429 : 400;
+            return res.status(status).json({ success: false, msg: mensaje });
         }
-        console.error("Error: ", error);
-        return res.status(500).json({ msg: "Error del servidor" });
+        return res.status(500).json({ success: false, msg: "Error del servidor" });
     }
 });
 exports.login = login;
@@ -177,7 +164,7 @@ exports.login = login;
 const cambiarContrasena = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
     try {
-        yield conexion_1.default.query("UPDATE ms_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;", {
+        yield conexion_1.default.query("UPDATE tbl_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;", {
             replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
         });
         return res.json({
@@ -191,11 +178,11 @@ const cambiarContrasena = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.cambiarContrasena = cambiarContrasena;
-// Cambio de contraseña y actualizar estado
+// Cambio de contraseña y actualizar jkjjljkjkljkljkljkljkljkljkl
 const cambiarConperfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
     try {
-        yield conexion_1.default.query("UPDATE ms_usuarios SET CONTRASEÑA = ? WHERE CORREO_ELECTRONICO = ?;", {
+        yield conexion_1.default.query("UPDATE tbl_usuarios SET CONTRASEÑA = ? WHERE CORREO_ELECTRONICO = ?;", {
             replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
         });
         return res.json({
@@ -231,47 +218,64 @@ exports.cambiarConperfil = cambiarConperfil;
 //     });
 //   }
 // };
-//Elimina Usuario y todos los documentos relacionados
 const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { ID_USUARIO } = req.body;
-    const transaction = yield conexion_1.default.transaction();
     try {
-        //elimina primero todos los documentos relacionados
-        yield Documentos_model_1.documentos.destroy({
-            where: { ID_USUARIO },
-            transaction,
+        yield conexion_1.default.query('CALL eliminar_usuario(:ID_USUARIO)', {
+            replacements: { ID_USUARIO },
         });
-        //elimina el usuario
-        const deletedCount = yield ms_usuarios_1.ms_usuarios.destroy({
-            where: { ID_USUARIO },
-            transaction,
-        });
-        if (deletedCount === 0) {
-            // rollback si el usuario no existe
-            yield transaction.rollback();
-            return res.status(404).json({
-                msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
-            });
-        }
-        // Confirmacion
-        yield transaction.commit();
         res.json({
             msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
         });
     }
     catch (error) {
-        // Si ocurre un error revierte la transacción
-        yield transaction.rollback();
         console.error("Error al eliminar el usuario:", error);
-        res.status(500).json({
-            msg: "Error al eliminar el usuario.",
-        });
+        const msg = ((_a = error === null || error === void 0 ? void 0 : error.original) === null || _a === void 0 ? void 0 : _a.sqlMessage) || "Error al eliminar el usuario.";
+        res.status(500).json({ msg });
     }
 });
 exports.deleteUsuario = deleteUsuario;
+// //Elimina Usuario y todos los documentos relacionados
+// export const deleteUsuario = async (req: Request, res: Response) => {
+//   const { ID_USUARIO } = req.body;
+//   const transaction = await sequelize.transaction();
+//   try {
+//     //elimina primero todos los documentos relacionados
+//     await documentos.destroy({
+//       where: { ID_USUARIO },
+//       transaction, 
+//     });
+//     //elimina el usuario
+//     const deletedCount = await ms_usuarios.destroy({
+//       where: { ID_USUARIO },
+//       transaction,
+//     });
+//     if (deletedCount === 0) {
+//       // rollback si el usuario no existe
+//       await transaction.rollback();
+//       return res.status(404).json({
+//         msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
+//       });
+//     }
+//     // Confirmacion
+//     await transaction.commit();
+//     res.json({
+//       msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
+//     });
+//   } catch (error) {
+//     // Si ocurre un error revierte la transacción
+//     await transaction.rollback();
+//     console.error("Error al eliminar el usuario:", error);
+//     res.status(500).json({
+//       msg: "Error al eliminar el usuario.",
+//     });
+//   }
+// };
+//Actualizar usuarios ;)
 //Actualizar usuarios ;)
 const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const _a = req.body, { ID_USUARIO, CONTRASEÑA } = _a, campos = __rest(_a, ["ID_USUARIO", "CONTRASE\u00D1A"]);
+    const _a = req.body, { ID_USUARIO, CONTRASEÑA, ID_ROL } = _a, campos = __rest(_a, ["ID_USUARIO", "CONTRASE\u00D1A", "ID_ROL"]);
     try {
         // Buscar usuario
         const usuario = yield ms_usuarios_1.ms_usuarios.findOne({ where: { ID_USUARIO } });
@@ -280,9 +284,14 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 .status(404)
                 .json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
         }
+        // Si viene contraseña, se actualiza y se marca como NUEVO
         if (CONTRASEÑA) {
-            campos.CONTRASEÑA = yield CONTRASEÑA;
+            campos.CONTRASEÑA = CONTRASEÑA; // Si deseas encriptarla, hacelo aquí
             campos.ESTADO_USUARIO = "NUEVO";
+        }
+        // Si viene el nuevo ID de rol, lo agregamos también
+        if (ID_ROL !== undefined && ID_ROL !== null) {
+            campos.ID_ROL = ID_ROL;
         }
         // Convertir valores a mayúsculas donde corresponda
         if (campos.USUARIO)
@@ -309,6 +318,59 @@ const updateUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.updateUsuario = updateUsuario;
+// export const updateUsuario = async (req: Request, res: Response) => {
+//   const {
+//     ID_USUARIO,
+//     USUARIO,
+//     NOMBRE_USUARIO,
+//     CORREO_ELECTRONICO,
+//     DIRECCION_1,
+//     DIRECCION_2,
+//     CONTRASEÑA,
+//     MODIFICADO_POR,
+//   } = req.body;
+//   // Verificación de campos obligatorios
+//   if (
+//     !ID_USUARIO ||
+//     !USUARIO ||
+//     !NOMBRE_USUARIO ||
+//     !CORREO_ELECTRONICO 
+//   ) {
+//     return res.status(400).json({
+//       msg: "Faltan campos obligatorios en la petición. Verifica ID_USUARIO, USUARIO, NOMBRE_USUARIO, CORREO_ELECTRONICO, CONTRASEÑA y MODIFICADO_POR.",
+//     });
+//   }
+//   try {
+//     // Conversión segura a mayúsculas
+//     const usuarioMayus = String(USUARIO).toUpperCase();
+//     const nombreMayus = String(NOMBRE_USUARIO).toUpperCase();
+//     const correoMayus = String(CORREO_ELECTRONICO).toUpperCase();
+//     const dir1Mayus = DIRECCION_1 ? String(DIRECCION_1).toUpperCase() : null;
+//     const dir2Mayus = DIRECCION_2 ? String(DIRECCION_2).toUpperCase() : null;
+//     await sequelize.query('CALL actualizar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', {
+//       replacements: [
+//         ID_USUARIO,
+//         usuarioMayus,
+//         nombreMayus,
+//         correoMayus,
+//         dir1Mayus,
+//         dir2Mayus,
+//         !CONTRASEÑA,
+//         "NUEVO", 
+//         MODIFICADO_POR,
+//         new Date(),
+//       ],
+//     });
+//     res.status(200).json({
+//       msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.`,
+//     });
+//   } catch (error: any) {
+//     console.error("Error al actualizar el usuario:", error);
+//     res.status(500).json({
+//       msg: error.sqlMessage || error.message || "Error al actualizar el usuario.",
+//     });
+//   }
+// };
 //Traer usuario
 const getUsuarioEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

@@ -13,7 +13,7 @@ import { validarPermiso } from "./validarPermiso";
 const router = Router();
 
 router.post("/api/parametros/CrearParametro", validarTokenConPermisos, validarPermiso('insercion', 'PARAMETRO'), CrearParametro);
-router.get("/api/parametros/getParametros", validarTokenConPermisos, validarPermiso('consulta', 'PARAMETRO'), getParametros);
+router.get("/api/parametros/getParametros",  getParametros);
 router.delete("/api/parametros/deleteParametro", validarTokenConPermisos, validarPermiso('eliminacion', 'PARAMETRO'), deleteParametro);
 router.put("/api/parametros/updateParametros", validarTokenConPermisos, validarPermiso('actualizacion', 'PARAMETRO'), updateParametros);
 

@@ -27,7 +27,7 @@ exports.tipoDocumentoCaracteristica = conexion_1.default.define('tipo_documento_
         allowNull: true
     }
 }, {
-    tableName: 'tipo_documento_caracteristica',
+    tableName: 'tbl_tipo_documento_caracteristica',
     timestamps: false,
     freezeTableName: true
 });

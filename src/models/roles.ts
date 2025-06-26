@@ -18,7 +18,7 @@ export const ms_roles = sequelize.define(
     },
     {
         timestamps: false, // Desactivar createdAt y updatedAt 
-        tableName: 'ms_roles',
+        tableName: 'tbl_roles',
         freezeTableName: true,
     }
 );

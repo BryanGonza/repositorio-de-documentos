@@ -37,7 +37,7 @@ export const documentoVersiones = sequelize.define(
     }
   },
   {
-    tableName: 'documentos_versiones',
+    tableName: 'tbl_documentos_versiones',
     timestamps: false,
     freezeTableName: true
   }

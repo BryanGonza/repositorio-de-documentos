@@ -18,6 +18,6 @@ exports.departamentos = conexion_1.default.define('Departamento', {
     ESTADO: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true }
 }, {
     timestamps: false,
-    tableName: 'departamentos',
+    tableName: 'tbl_departamentos',
     freezeTableName: true,
 });

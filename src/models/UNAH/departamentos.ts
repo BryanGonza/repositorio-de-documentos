@@ -17,7 +17,7 @@ export const departamentos = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'departamentos',
+        tableName: 'tbl_departamentos',
         freezeTableName: true,
     }
 );

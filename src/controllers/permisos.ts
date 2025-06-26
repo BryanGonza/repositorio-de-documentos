@@ -34,7 +34,9 @@ export const createPermiso = async (req: Request, res: Response) => {
 // Obtener todos los permisos
  
 export const getPermisos = async (req: Request, res: Response) => {
-    const ListPermisos = await permisos.findAll();
+    const ListPermisos = await permisos.findAll(
+      { order: [['FECHA_CREACION', 'DESC']],}
+    );
     res.json({ListPermisos})
 }
 

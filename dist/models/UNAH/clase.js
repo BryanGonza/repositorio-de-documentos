@@ -20,6 +20,6 @@ exports.clases = conexion_1.default.define('clase', {
     ESTADO: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true }
 }, {
     timestamps: false,
-    tableName: 'clase',
+    tableName: 'tbl_clase',
     freezeTableName: true,
 });

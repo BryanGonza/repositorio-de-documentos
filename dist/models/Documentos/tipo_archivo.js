@@ -17,6 +17,6 @@ exports.tipo_archivo = conexion_1.default.define('tipo_archivo', {
     LIMITE_ALMACENAMIENTO: { type: sequelize_1.DataTypes.BIGINT, allowNull: true },
 }, {
     timestamps: false,
-    tableName: 'tipo_archivo',
+    tableName: 'tbl_tipo_archivo',
     freezeTableName: true,
 });

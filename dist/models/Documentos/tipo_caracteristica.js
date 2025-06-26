@@ -16,6 +16,6 @@ exports.tipo_caracteristica = conexion_1.default.define('tipo_caracteristica', {
     TIPO_CARACTERISTICA: { type: sequelize_1.DataTypes.STRING, allowNull: true }
 }, {
     timestamps: false,
-    tableName: 'tipo_caracteristica',
+    tableName: 'tbl_tipo_caracteristica',
     freezeTableName: true,
 });

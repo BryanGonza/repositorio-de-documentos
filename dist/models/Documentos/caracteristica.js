@@ -18,6 +18,6 @@ exports.caracteristica = conexion_1.default.define('caracteristica', {
     VALORES_PREDETERMINADOS: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true }
 }, {
     timestamps: false,
-    tableName: 'caracteristica',
+    tableName: 'tbl_caracteristica',
     freezeTableName: true,
 });

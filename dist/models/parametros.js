@@ -23,6 +23,6 @@ exports.parametros = conexion_1.default.define(
     FECHA_MODIFICACION: { type: sequelize_1.DataTypes.DATE, allowNull: true },
 }, {
     timestamps: false, // Desactivar createdAt y updatedAt
-    tableName: "parametros",
+    tableName: "tbl_parametros",
     freezeTableName: true,
 });

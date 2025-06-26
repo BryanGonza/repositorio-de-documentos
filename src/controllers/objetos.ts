@@ -31,7 +31,9 @@ export const createObjetos = async (req: Request, res: Response) => {
 // Obtener todos los objetos
  
 export const getObjetos = async (req: Request, res: Response) => {
-    const Lista_Objetos = await ms_objetos.findAll();
+    const Lista_Objetos = await ms_objetos.findAll({
+      
+    });
     res.json({Lista_Objetos})
 }
 

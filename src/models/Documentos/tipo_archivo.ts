@@ -15,7 +15,7 @@ export const tipo_archivo = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'tipo_archivo',
+        tableName: 'tbl_tipo_archivo',
         freezeTableName: true,
     }
 );

@@ -19,6 +19,6 @@ exports.estructura_archivos = conexion_1.default.define('estructura_archivos', {
     UBICACION: { type: sequelize_1.DataTypes.STRING, allowNull: true }
 }, {
     timestamps: false,
-    tableName: 'estructura_archivos',
+    tableName: 'tbl_estructura_archivos',
     freezeTableName: true,
 });

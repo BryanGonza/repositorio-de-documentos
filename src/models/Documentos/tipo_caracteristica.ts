@@ -14,7 +14,7 @@ export const tipo_caracteristica = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'tipo_caracteristica',
+        tableName: 'tbl_tipo_caracteristica',
         freezeTableName: true,
     }
 );

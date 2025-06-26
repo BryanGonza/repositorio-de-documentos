@@ -30,7 +30,9 @@ export const createRol = async (req: Request, res: Response) => {
 // Obtener todos los roles
  
 export const getRoles = async (req: Request, res: Response) => {
-    const ListRoles = await ms_roles.findAll();
+    const ListRoles = await ms_roles.findAll({
+        order: [['FECHA_CREACION', 'DESC']],
+    });
     res.json({ListRoles})
 }
 

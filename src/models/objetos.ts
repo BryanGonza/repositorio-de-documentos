@@ -20,7 +20,7 @@ export const ms_objetos = sequelize.define(
   },
   {
     timestamps: false,
-    tableName: 'ms_objetos',
+    tableName: 'tbl_objetos',
     freezeTableName: true,
   }
 );

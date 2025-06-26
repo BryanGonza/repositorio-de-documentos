@@ -15,7 +15,7 @@ export const estado = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'estado',
+        tableName: 'tbl_estado',
         freezeTableName: true,
     }
 );

@@ -39,7 +39,7 @@ const createObjetos = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.createObjetos = createObjetos;
 // Obtener todos los objetos
 const getObjetos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const Lista_Objetos = yield objetos_1.ms_objetos.findAll();
+    const Lista_Objetos = yield objetos_1.ms_objetos.findAll({});
     res.json({ Lista_Objetos });
 });
 exports.getObjetos = getObjetos;

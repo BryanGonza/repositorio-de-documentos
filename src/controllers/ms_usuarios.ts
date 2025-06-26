@@ -7,6 +7,7 @@ import sequelize from "../database/conexion";
 import { configurarTransporter } from "../controllers/emailService";
 import { documentos } from "../models/Documentos/Documentos.model";
 import { parametros } from '../models/parametros'; 
+import { ms_roles } from "../models/roles";
 
 //Registrar un usuario
 export const registrerUser = async (req: Request, res: Response) => {
@@ -19,7 +20,7 @@ export const registrerUser = async (req: Request, res: Response) => {
     DIRECCION_2,
     USUARIO,
     NOMBRE_USUARIO,
-    ESTADO_USUARIO,
+    ESTADO_USUARIO, // No se usa directamente
     CONTRASEÑA,
     ID_ROL,
     FECHA_ULTIMA_CONEXION,
@@ -32,179 +33,153 @@ export const registrerUser = async (req: Request, res: Response) => {
     CORREO_ELECTRONICO,
   } = req.body;
 
-  const user = await ms_usuarios.findOne({
-    where: {
-      [Op.or]: {
-        CORREO_ELECTRONICO: CORREO_ELECTRONICO,
-        NUM_IDENTIDAD: NUM_IDENTIDAD.toString(),
-      },
-    },
+  const CONTRASEÑAHash = await bycryp.hash(CONTRASEÑA, 10);
+
+try {
+  // Paso 1: Ejecutar el procedimiento almacenado
+  await sequelize.query(
+    `CALL registrar_usuario(
+      :ID_DEPARTAMENTO,
+      :NUM_IDENTIDAD,
+      :USUARIO,
+      :NOMBRE_USUARIO,
+      :CONTRASENA,
+      :ID_ROL,
+      :CORREO_ELECTRONICO,
+      @p_EXISTE
+    );`,
+    {
+      replacements: {
+        ID_DEPARTAMENTO,
+        NUM_IDENTIDAD,
+        USUARIO,
+        NOMBRE_USUARIO,
+        CONTRASENA: CONTRASEÑA,
+        ID_ROL,
+        CORREO_ELECTRONICO
+      }
+    }
+  );
+
+
+  // Paso 2: Obtener el valor de @p_EXISTE
+  const [existeResult]: any = await sequelize.query(`SELECT @p_EXISTE AS existe;`);
+  const existe = existeResult[0]?.existe;
+
+  if (existe === 1) {
+    return res.status(400).json({
+      msg: `Ya existe un usuario con email ${CORREO_ELECTRONICO} o el número de identidad ${NUM_IDENTIDAD}`,
+    });
+  }
+
+  res.json({
+    msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
   });
 
-  if (user) {
-    return res.status(400).json({
-      msg: `Ya existe un usuario con email ${CORREO_ELECTRONICO} o el numero de identidad ${NUM_IDENTIDAD}`,
-    });
-  }
+} catch (error: any) {
+  console.error("Error al crear usuario:", error);
+  res.status(500).json({
+    msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
+  });
+}
+}
 
-  // console.log("Estoy aqui...");
-  const CONTRASEÑAHash = await bycryp.hash(CONTRASEÑA, 10);
-  console.log("Datos recibidos:", req.body);
-  try {
-    await ms_usuarios.create({
-      ID_USUARIO: ID_USUARIO,
-      ID_DEPARTAMENTO: ID_DEPARTAMENTO,
-      NUM_IDENTIDAD: NUM_IDENTIDAD,
-      ID_CARGO: ID_CARGO,
-      DIRECCION_1: DIRECCION_1,
-      DIRECCION_2: DIRECCION_2,
-      USUARIO: USUARIO.toUpperCase(),
-      NOMBRE_USUARIO: NOMBRE_USUARIO.toUpperCase(),
-      ESTADO_USUARIO: "NUEVO",
-      CONTRASEÑA: CONTRASEÑA.toUpperCase(),
-      ID_ROL: ID_ROL,
-      FECHA_ULTIMA_CONEXION: FECHA_ULTIMA_CONEXION,
-      PREGUNTAS_CONTESTADAS: PREGUNTAS_CONTESTADAS,
-      FECHA_CREACION: new Date(),
-      CREADO_POR: CREADO_POR,
-      FECHA_MODIFICACION: FECHA_MODIFICACION,
-      MODIFICADO_POR: MODIFICADO_POR,
-      PRIMER_INGRESO: PRIMER_INGRESO,
-      FECHA_VENCIMIENTO: FECHA_VENCIMIENTO,
-      CORREO_ELECTRONICO: CORREO_ELECTRONICO.toUpperCase(),
-    });
-
-    res.json({
-      msg: `Usuario ${NOMBRE_USUARIO.toUpperCase()} creado correctamente...`,
-    });
-  } catch (error: any) {
-    console.error("Error en la creación del usuario:", error);
-    res.status(500).json({
-      msg: `Error al crear usuario ${NOMBRE_USUARIO.toUpperCase()}.`,
-    });
-  }
-};
-
-//Get para traer todos los usuarios
 export const getUsuarios = async (req: Request, res: Response) => {
-  const ListUsuarios = await ms_usuarios.findAll();
-  res.json({ ListUsuarios });
+  try {
+    const result: any = await sequelize.query("CALL obtener_usuarios();");
+    
+    if (!result || result.length === 0) {
+      return res.status(404).json({ msg: "No hay usuarios registrados." });
+    }
+
+    res.json({ ListUsuarios: result });
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    res.status(500).json({
+      msg: "Error al obtener la lista de usuarios.",
+    });
+  }
 };
-// Login de Usuario
+
+// export const getUsuarios = async (req: Request, res: Response) => {
+//   const ListUsuarios = await ms_usuarios.findAll();
+//   res.json({ ListUsuarios });
+// };
+
+
+
+//Login de usuario
 export const login = async (req: Request, res: Response) => {
   const { CORREO_ELECTRONICO, CONTRASEÑA } = req.body;
 
   try {
+      const [resultado]: any = await sequelize.query(
+          "CALL ValidarUsuarioCompleto(?, ?);",
+          {
+              replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
+          }
+      );
 
-    const [resultado]: any = await sequelize.query(
-      "CALL ValidarUsuario(?, ?);",
-      {
-        replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
+      const datosUsuario = Array.isArray(resultado) ? resultado[0] : resultado;
+
+      if (!datosUsuario || !datosUsuario.ID_USUARIO) {
+          return res.status(401).json({ success: false, msg: "Credenciales incorrectas" });
       }
-    );
 
-    if (!resultado) {
-      return res.status(401).json({ msg: "Credenciales incorrectas" });
-    }
-
-
-    const [estadoUsuario]: any = await sequelize.query(
-      "SELECT ESTADO_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;",
-      {
-        replacements: [CORREO_ELECTRONICO],
+      if (datosUsuario.ESTADO_USUARIO === "NUEVO") {
+          return res.status(403).json({
+              success: false,
+              msg: "Debe cambiar su contraseña antes de iniciar sesión",
+              requiereCambioContraseña: true
+          });
       }
-    );
 
-    if (
-      estadoUsuario.length > 0 &&
-      estadoUsuario[0].ESTADO_USUARIO === "NUEVO"
-    ) {
-      return res.status(403).json({
-        success: false,
-        msg: "Debe cambiar su contraseña antes de iniciar sesión",
+      // Generar token JWT 
+      const expParam = await parametros.findOne({
+          where: {
+              [Op.and]: [
+                  { PARAMETRO: { [Op.like]: '%EXPIRACION%' } },
+                  { PARAMETRO: { [Op.like]: '%SESION%' } },
+                  { PARAMETRO: { [Op.like]: '%HORAS%' } },
+              ]
+          }
       });
-    }
 
-    const [rolUsuario]: any = await sequelize.query(
-      `
-        SELECT r.ID_ROL, r.ROL
-        FROM ms_usuarios u
-        INNER JOIN ms_roles r ON u.ID_ROL = r.ID_ROL
-        WHERE u.CORREO_ELECTRONICO = ?
-        LIMIT 1;
-      `,
-      {
-        replacements: [CORREO_ELECTRONICO],
-      }
-    );
-    
-    if (!rolUsuario || rolUsuario.length === 0) {
-      return res.status(500).json({ msg: "No se encontró el rol del usuario" });
-    }
-    
-    const idRol = rolUsuario[0].ID_ROL;
+      const horas = expParam ? Number(expParam.VALOR) : 1;
+      const expiresInSegundos = horas * 3600;
+      const secretKey: jwt.Secret = process.env.Secret_key || 'Repositorio_Documentos_2025';
+      const signOptions: jwt.SignOptions = { expiresIn: expiresInSegundos };
 
+      const token = jwt.sign(
+          {
+              id: datosUsuario.ID_USUARIO,
+              CORREO_ELECTRONICO,
+              rol: datosUsuario.ID_ROL,
+              nombreRol: datosUsuario.ROL // Agregado para usar el nombre del rol
+          },
+          secretKey,
+          signOptions
+      );
 
-    // Manejo de caso si no existe registro 
-    if (!rolUsuario || rolUsuario.length === 0) {
-      return res.status(500).json({ msg: "No se encontró el rol del usuario" });
-    }
+      return res.json({
+          success: true,
+          msg: "Inicio de sesión exitoso",
+          token,
+          usuario: {  
+              id: datosUsuario.ID_USUARIO,
+              rol: datosUsuario.ID_ROL,
+              nombreRol: datosUsuario.ROL
+          }
+      });
 
-    const [datosUsuario]: any = await sequelize.query(
-      "SELECT ID_USUARIO FROM ms_usuarios WHERE CORREO_ELECTRONICO = ?;",
-      {
-        replacements: [CORREO_ELECTRONICO],
-      }
-    );
-    
-    if (!datosUsuario || datosUsuario.length === 0) {
-      return res.status(500).json({ msg: "No se encontró el ID del usuario" });
-    }
-    const expParam = await parametros.findOne({
-      where: {
-        [Op.and]: [
-          { PARAMETRO: { [Op.like]: '%EXPIRACION%' } },
-          { PARAMETRO: { [Op.like]: '%SESION%'      } },
-          { PARAMETRO: { [Op.like]: '%HORAS%'       } },
-        ]
-      }
-    });
-    const idUsuario = datosUsuario[0].ID_USUARIO;
-    const nombreRol = rolUsuario[0].ROL;
-
-    const horas = expParam ? Number(expParam.getDataValue('VALOR')) : 1;
-    const expiresInSegundos = horas * 3600;
-    const secretKey: jwt.Secret = process.env.Secret_key || 'Repositorio_Documentos_2025';
-  const signOptions: jwt.SignOptions = { expiresIn: expiresInSegundos };
-
-    
-    // generar token JWT 
-    const token = jwt.sign(
-      {
-        id: idUsuario,  
-        CORREO_ELECTRONICO,
-        rol: idRol, // Aquí usas el ID numérico del rol
-      },
-      secretKey,
-      signOptions
-    );
-
- 
-    return res.json({
-      success: true,
-      msg: "Inicio de sesión exitoso",
-      token,
-      
-    });
   } catch (error: any) {
-    if (error.parent && error.parent.sqlState === "45000") {
-      return res
-        .status(400)
-        .json({ msg: error.parent.sqlMessage || "Error en el login" });
-    }
-
-    console.error("Error: ", error);
-    return res.status(500).json({ msg: "Error del servidor" });
+      console.error("Error en login:", error);
+      if (error.original?.code === 'ER_SIGNAL_EXCEPTION') {
+          const mensaje = error.original?.message || "Error en credenciales";
+          const status = mensaje.includes('bloqueado') ? 429 : 400;
+          return res.status(status).json({ success: false, msg: mensaje });
+      }
+      return res.status(500).json({ success: false, msg: "Error del servidor" });
   }
 };
 
@@ -215,7 +190,7 @@ export const cambiarContrasena = async (req: Request, res: Response) => {
 
   try {
     await sequelize.query(
-      "UPDATE ms_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;",
+      "UPDATE tbl_usuarios SET CONTRASEÑA = ?, ESTADO_USUARIO = 'ACTIVO' WHERE CORREO_ELECTRONICO = ?;",
       {
         replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
       }
@@ -230,13 +205,13 @@ export const cambiarContrasena = async (req: Request, res: Response) => {
     return res.status(500).json({ msg: "Error del servidor" });
   }
 };
-// Cambio de contraseña y actualizar estado
+// Cambio de contraseña y actualizar jkjjljkjkljkljkljkljkljkljkl
 export const cambiarConperfil = async (req: Request, res: Response) => {
   const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
 
   try {
     await sequelize.query(
-      "UPDATE ms_usuarios SET CONTRASEÑA = ? WHERE CORREO_ELECTRONICO = ?;",
+      "UPDATE tbl_usuarios SET CONTRASEÑA = ? WHERE CORREO_ELECTRONICO = ?;",   
       {
         replacements: [NUEVA_CONTRASEÑA, CORREO_ELECTRONICO],
       }
@@ -276,51 +251,71 @@ export const cambiarConperfil = async (req: Request, res: Response) => {
 //   }
 // };
 
-//Elimina Usuario y todos los documentos relacionados
 export const deleteUsuario = async (req: Request, res: Response) => {
   const { ID_USUARIO } = req.body;
-  const transaction = await sequelize.transaction();
-  
+
   try {
-    //elimina primero todos los documentos relacionados
-    await documentos.destroy({
-      where: { ID_USUARIO },
-      transaction, 
+    await sequelize.query('CALL eliminar_usuario(:ID_USUARIO)', {
+      replacements: { ID_USUARIO },
     });
 
-    //elimina el usuario
-    const deletedCount = await ms_usuarios.destroy({
-      where: { ID_USUARIO },
-      transaction,
-    });
-
-    if (deletedCount === 0) {
-      // rollback si el usuario no existe
-      await transaction.rollback();
-      return res.status(404).json({
-        msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
-      });
-    }
-
-    // Confirmacion
-    await transaction.commit();
-    
     res.json({
       msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
     });
-  } catch (error) {
-    // Si ocurre un error revierte la transacción
-    await transaction.rollback();
+  } catch (error: any) {
     console.error("Error al eliminar el usuario:", error);
-    res.status(500).json({
-      msg: "Error al eliminar el usuario.",
-    });
+
+    const msg = error?.original?.sqlMessage || "Error al eliminar el usuario.";
+    res.status(500).json({ msg });
   }
 };
 
+// //Elimina Usuario y todos los documentos relacionados
+// export const deleteUsuario = async (req: Request, res: Response) => {
+//   const { ID_USUARIO } = req.body;
+//   const transaction = await sequelize.transaction();
+  
+//   try {
+//     //elimina primero todos los documentos relacionados
+//     await documentos.destroy({
+//       where: { ID_USUARIO },
+//       transaction, 
+//     });
+
+//     //elimina el usuario
+//     const deletedCount = await ms_usuarios.destroy({
+//       where: { ID_USUARIO },
+//       transaction,
+//     });
+
+//     if (deletedCount === 0) {
+//       // rollback si el usuario no existe
+//       await transaction.rollback();
+//       return res.status(404).json({
+//         msg: `No se encontró un usuario con el ID ${ID_USUARIO}.`,
+//       });
+//     }
+
+//     // Confirmacion
+//     await transaction.commit();
+    
+//     res.json({
+//       msg: `Usuario con ID ${ID_USUARIO} eliminado exitosamente.`,
+//     });
+//   } catch (error) {
+//     // Si ocurre un error revierte la transacción
+//     await transaction.rollback();
+//     console.error("Error al eliminar el usuario:", error);
+//     res.status(500).json({
+//       msg: "Error al eliminar el usuario.",
+//     });
+//   }
+// };
+
+//Actualizar usuarios ;)
 //Actualizar usuarios ;)
 export const updateUsuario = async (req: Request, res: Response) => {
-  const { ID_USUARIO, CONTRASEÑA, ...campos } = req.body;
+  const { ID_USUARIO, CONTRASEÑA, ID_ROL, ...campos } = req.body;
 
   try {
     // Buscar usuario
@@ -331,9 +326,15 @@ export const updateUsuario = async (req: Request, res: Response) => {
         .json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
     }
 
+    // Si viene contraseña, se actualiza y se marca como NUEVO
     if (CONTRASEÑA) {
-      campos.CONTRASEÑA = await CONTRASEÑA;
+      campos.CONTRASEÑA = CONTRASEÑA; // Si deseas encriptarla, hacelo aquí
       campos.ESTADO_USUARIO = "NUEVO";
+    }
+
+    // Si viene el nuevo ID de rol, lo agregamos también
+    if (ID_ROL !== undefined && ID_ROL !== null) {
+      campos.ID_ROL = ID_ROL;
     }
 
     // Convertir valores a mayúsculas donde corresponda
@@ -360,6 +361,65 @@ export const updateUsuario = async (req: Request, res: Response) => {
     res.status(500).json({ msg: "Error al actualizar el usuario." });
   }
 };
+
+// export const updateUsuario = async (req: Request, res: Response) => {
+//   const {
+//     ID_USUARIO,
+//     USUARIO,
+//     NOMBRE_USUARIO,
+//     CORREO_ELECTRONICO,
+//     DIRECCION_1,
+//     DIRECCION_2,
+//     CONTRASEÑA,
+//     MODIFICADO_POR,
+//   } = req.body;
+
+//   // Verificación de campos obligatorios
+//   if (
+//     !ID_USUARIO ||
+//     !USUARIO ||
+//     !NOMBRE_USUARIO ||
+//     !CORREO_ELECTRONICO 
+//   ) {
+//     return res.status(400).json({
+//       msg: "Faltan campos obligatorios en la petición. Verifica ID_USUARIO, USUARIO, NOMBRE_USUARIO, CORREO_ELECTRONICO, CONTRASEÑA y MODIFICADO_POR.",
+//     });
+//   }
+
+//   try {
+//     // Conversión segura a mayúsculas
+//     const usuarioMayus = String(USUARIO).toUpperCase();
+//     const nombreMayus = String(NOMBRE_USUARIO).toUpperCase();
+//     const correoMayus = String(CORREO_ELECTRONICO).toUpperCase();
+//     const dir1Mayus = DIRECCION_1 ? String(DIRECCION_1).toUpperCase() : null;
+//     const dir2Mayus = DIRECCION_2 ? String(DIRECCION_2).toUpperCase() : null;
+
+//     await sequelize.query('CALL actualizar_usuario(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', {
+//       replacements: [
+//         ID_USUARIO,
+//         usuarioMayus,
+//         nombreMayus,
+//         correoMayus,
+//         dir1Mayus,
+//         dir2Mayus,
+//         !CONTRASEÑA,
+//         "NUEVO", 
+//         MODIFICADO_POR,
+//         new Date(),
+//       ],
+//     });
+
+//     res.status(200).json({
+//       msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.`,
+//     });
+//   } catch (error: any) {
+//     console.error("Error al actualizar el usuario:", error);
+//     res.status(500).json({
+//       msg: error.sqlMessage || error.message || "Error al actualizar el usuario.",
+//     });
+//   }
+// };
+
 
 //Traer usuario
 export const getUsuarioEmail = async (req: Request, res: Response) => {

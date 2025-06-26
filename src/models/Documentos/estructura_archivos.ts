@@ -18,7 +18,7 @@ export const estructura_archivos = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'estructura_archivos',
+        tableName: 'tbl_estructura_archivos',
         freezeTableName: true,
     }
 );

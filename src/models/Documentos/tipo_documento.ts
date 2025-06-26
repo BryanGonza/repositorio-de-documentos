@@ -16,7 +16,7 @@ export const tipo_documento = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'tipo_documento',
+        tableName: 'tbl_tipo_documento',
         freezeTableName: true,
     }
 );

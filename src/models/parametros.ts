@@ -20,7 +20,7 @@ export const parametros = sequelize.define(
   },
   {
     timestamps: false, // Desactivar createdAt y updatedAt
-    tableName: "parametros",
+    tableName: "tbl_parametros",
     freezeTableName: true,
   }
 );

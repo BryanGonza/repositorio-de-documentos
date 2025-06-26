@@ -48,6 +48,6 @@ exports.ms_usuarios = conexion_1.default.define(
     },
 }, {
     timestamps: false, // Desactivar createdAt y updatedAt
-    tableName: "ms_usuarios",
+    tableName: "tbl_usuarios",
     freezeTableName: true,
 });

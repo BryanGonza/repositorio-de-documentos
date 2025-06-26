@@ -19,6 +19,6 @@ exports.ms_roles = conexion_1.default.define('ms_roles', {
     MODIFICADO_POR: { type: sequelize_1.DataTypes.STRING, allowNull: true },
 }, {
     timestamps: false, // Desactivar createdAt y updatedAt 
-    tableName: 'ms_roles',
+    tableName: 'tbl_roles',
     freezeTableName: true,
 });

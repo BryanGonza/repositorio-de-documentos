@@ -53,7 +53,7 @@ export const documentoDet = sequelize.define(
     },
   },
   {
-    tableName: "documentos_det",
+    tableName: "tbl_documentos_det",
     timestamps: false,
     freezeTableName: true,
   }

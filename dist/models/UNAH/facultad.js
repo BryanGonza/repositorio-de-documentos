@@ -17,6 +17,6 @@ exports.Facultad = conexion_1.default.define('Facultad', {
     ESTADO: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true }
 }, {
     timestamps: false,
-    tableName: 'facultad',
+    tableName: 'tbl_facultad',
     freezeTableName: true,
 });

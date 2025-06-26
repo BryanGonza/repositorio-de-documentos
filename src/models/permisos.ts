@@ -21,7 +21,7 @@ export const permisos = sequelize.define('TBL_PERMISOS', {
   FECHA_MODIFICACION: { type: DataTypes.DATE, allowNull: true }
 }, {
   timestamps: false,
-  tableName: 'TBL_PERMISOS',
+  tableName: 'tbl_permisos',
   freezeTableName: true,
 });
 

@@ -18,6 +18,6 @@ exports.s_categoria = conexion_1.default.define('sub_categoria', {
     ESTADO: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: true },
 }, {
     timestamps: false,
-    tableName: 'sub_categoria',
+    tableName: 'tbl_sub_categoria',
     freezeTableName: true,
 });

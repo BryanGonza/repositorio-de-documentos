@@ -30,10 +30,12 @@ export const ms_usuarios = sequelize.define(
     PRIMER_INGRESO: { type: DataTypes.STRING, allowNull: true },
     FECHA_VENCIMIENTO: { type: DataTypes.DATE, allowNull: true },
     CORREO_ELECTRONICO: {
+    
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
     },
+    
     resetCode: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -42,10 +44,11 @@ export const ms_usuarios = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+  
   },
   {
     timestamps: false, // Desactivar createdAt y updatedAt
-    tableName: "ms_usuarios",
+    tableName: "tbl_usuarios",
     freezeTableName: true,
   }
 );

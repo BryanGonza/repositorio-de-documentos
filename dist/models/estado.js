@@ -16,6 +16,6 @@ exports.estado = conexion_1.default.define('estado', {
     ESTADO: { type: sequelize_1.DataTypes.STRING, allowNull: true },
 }, {
     timestamps: false,
-    tableName: 'estado',
+    tableName: 'tbl_estado',
     freezeTableName: true,
 });

@@ -18,7 +18,7 @@ export const version = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'version',
+        tableName: 'tbl_version',
         freezeTableName: true,
     }
 );

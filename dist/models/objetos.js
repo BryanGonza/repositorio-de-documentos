@@ -22,6 +22,6 @@ exports.ms_objetos = conexion_1.default.define('ms_objetos', {
     MODIFICADO_POR: { type: sequelize_1.DataTypes.STRING, allowNull: true },
 }, {
     timestamps: false,
-    tableName: 'ms_objetos',
+    tableName: 'tbl_objetos',
     freezeTableName: true,
 });

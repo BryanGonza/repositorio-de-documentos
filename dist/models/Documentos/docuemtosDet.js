@@ -55,7 +55,7 @@ exports.documentoDet = conexion_1.default.define("documentos_det", {
         allowNull: true,
     },
 }, {
-    tableName: "documentos_det",
+    tableName: "tbl_documentos_det",
     timestamps: false,
     freezeTableName: true,
 });

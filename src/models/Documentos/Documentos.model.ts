@@ -25,7 +25,7 @@ export const documentos = sequelize.define(
         DESCRIPCION: {type: DataTypes.STRING, allowNull: true}
     }, {
         timestamps: false, // Desactivar createdAt y updatedAt 
-        tableName: 'documentos',
+        tableName: 'tbl_documentos',
         freezeTableName: true,
       }
 );

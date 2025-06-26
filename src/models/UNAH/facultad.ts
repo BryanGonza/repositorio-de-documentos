@@ -16,7 +16,7 @@ export const Facultad = sequelize.define(
     },
     {
         timestamps: false,
-        tableName: 'facultad',
+        tableName: 'tbl_facultad',
         freezeTableName: true,
     }
 );
