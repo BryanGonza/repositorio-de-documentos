@@ -21,7 +21,7 @@ import { caracteristica } from "../../models/Documentos/caracteristica";
 
 dotenv.config();
 
-const KEYFILEPATH = path.join(__dirname, "../credential.json");
+const KEYFILEPATH = path.join(__dirname, "../subtle-torus-453105-u7-1dc1c208ad50.json");
 
 // scopes necesarios para acceder a Google Drive
 const SCOPES = ["https://www.googleapis.com/auth/drive"];

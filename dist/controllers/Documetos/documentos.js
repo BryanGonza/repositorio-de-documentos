@@ -31,7 +31,7 @@ const clase_1 = require("../../models/UNAH/clase");
 const tipo_archivo_1 = require("../../models/Documentos/tipo_archivo");
 const caracteristica_1 = require("../../models/Documentos/caracteristica");
 dotenv_1.default.config();
-const KEYFILEPATH = path_1.default.join(__dirname, "../credential.json");
+const KEYFILEPATH = path_1.default.join(__dirname, "../subtle-torus-453105-u7-1dc1c208ad50.json");
 // scopes necesarios para acceder a Google Drive
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 // Autenticacion con Google Drive

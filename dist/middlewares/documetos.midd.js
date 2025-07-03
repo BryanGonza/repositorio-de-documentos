@@ -19,7 +19,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 // Ruta al archivo credentials.json
-const KEYFILEPATH = path_1.default.join(__dirname, "credential.json");
+const KEYFILEPATH = path_1.default.join(__dirname, "subtle-torus-453105-u7-1dc1c208ad50.json");
 // Scopes necesarios para acceder a Google Drive
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 // Autenticación con Google Drive

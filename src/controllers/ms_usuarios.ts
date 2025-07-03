@@ -205,7 +205,7 @@ export const cambiarContrasena = async (req: Request, res: Response) => {
     return res.status(500).json({ msg: "Error del servidor" });
   }
 };
-// Cambio de contraseña y actualizar jkjjljkjkljkljkljkljkljkljkl
+// Cambio de contraseña y actualizar
 export const cambiarConperfil = async (req: Request, res: Response) => {
   const { CORREO_ELECTRONICO, NUEVA_CONTRASEÑA } = req.body;
 
@@ -311,56 +311,106 @@ export const deleteUsuario = async (req: Request, res: Response) => {
 //     });
 //   }
 // };
-
-//Actualizar usuarios ;)
-//Actualizar usuarios ;)
 export const updateUsuario = async (req: Request, res: Response) => {
-  const { ID_USUARIO, CONTRASEÑA, ID_ROL, ...campos } = req.body;
+  const {
+    ID_USUARIO,
+    USUARIO,
+    NOMBRE_USUARIO,
+    CORREO_ELECTRONICO,
+    DIRECCION_1,
+    DIRECCION_2,
+    CONTRASEÑA,
+    ID_ROL,
+  } = req.body;
 
   try {
-    // Buscar usuario
-    const usuario = await ms_usuarios.findOne({ where: { ID_USUARIO } });
-    if (!usuario) {
-      return res
-        .status(404)
-        .json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
+    if (!ID_USUARIO) {
+      return res.status(400).json({ msg: "El ID del usuario es requerido." });
     }
 
-    // Si viene contraseña, se actualiza y se marca como NUEVO
-    if (CONTRASEÑA) {
-      campos.CONTRASEÑA = CONTRASEÑA; // Si deseas encriptarla, hacelo aquí
-      campos.ESTADO_USUARIO = "NUEVO";
-    }
+    // Ejecutar procedimiento almacenado
+    await sequelize.query(`
+  CALL ActualizarUsuario(
+    :ID_USUARIO,
+    :USUARIO,
+    :NOMBRE_USUARIO,
+    :CORREO_ELECTRONICO,
+    :DIRECCION_1,
+    :DIRECCION_2,
+    :CONTRASENA,
+    :ID_ROL
+  )`, {
+  replacements: {
+    ID_USUARIO,
+    USUARIO: USUARIO ? USUARIO.toUpperCase() : null,
+    NOMBRE_USUARIO: NOMBRE_USUARIO ? NOMBRE_USUARIO.toUpperCase() : null,
+    CORREO_ELECTRONICO: CORREO_ELECTRONICO ? CORREO_ELECTRONICO.toUpperCase() : null,
+    DIRECCION_1: DIRECCION_1 ? DIRECCION_1.toUpperCase() : null,
+    DIRECCION_2: DIRECCION_2 ? DIRECCION_2.toUpperCase() : null,
+    CONTRASENA: CONTRASEÑA || null,
+    ID_ROL: ID_ROL ?? null
+  }
+});
 
-    // Si viene el nuevo ID de rol, lo agregamos también
-    if (ID_ROL !== undefined && ID_ROL !== null) {
-      campos.ID_ROL = ID_ROL;
-    }
-
-    // Convertir valores a mayúsculas donde corresponda
-    if (campos.USUARIO) campos.USUARIO = campos.USUARIO.toUpperCase();
-    if (campos.NOMBRE_USUARIO)
-      campos.NOMBRE_USUARIO = campos.NOMBRE_USUARIO.toUpperCase();
-    if (campos.CORREO_ELECTRONICO)
-      campos.CORREO_ELECTRONICO = campos.CORREO_ELECTRONICO.toUpperCase();
-    if (campos.DIRECCION_1)
-      campos.DIRECCION_1 = campos.DIRECCION_1.toUpperCase();
-    if (campos.DIRECCION_2)
-      campos.DIRECCION_2 = campos.DIRECCION_2.toUpperCase();
-
-    // Si hay cambios, actualiza el usuario
-    if (Object.keys(campos).length > 0) {
-      await usuario.update(campos);
-    }
-
-    res
-      .status(200)
-      .json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
-  } catch (error) {
+    res.status(200).json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
+  } catch (error: any) {
     console.error("Error al actualizar el usuario:", error);
+    
+    if (error.original?.sqlMessage) {
+      return res.status(400).json({ msg: error.original.sqlMessage });
+    }
+
     res.status(500).json({ msg: "Error al actualizar el usuario." });
   }
 };
+//Actualizar usuarios ;)
+// export const updateUsuario = async (req: Request, res: Response) => {
+//   const { ID_USUARIO, CONTRASEÑA, ID_ROL, ...campos } = req.body;
+
+//   try {
+//     // Buscar usuario
+//     const usuario = await ms_usuarios.findOne({ where: { ID_USUARIO } });
+//     if (!usuario) {
+//       return res
+//         .status(404)
+//         .json({ msg: `No se encontró un usuario con el ID ${ID_USUARIO}.` });
+//     }
+
+//     // Si viene contraseña, se actualiza y se marca como NUEVO
+//     if (CONTRASEÑA) {
+//       campos.CONTRASEÑA = CONTRASEÑA; // Si deseas encriptarla, hacelo aquí
+//       campos.ESTADO_USUARIO = "NUEVO";
+//     }
+
+//     // Si viene el nuevo ID de rol, lo agregamos también
+//     if (ID_ROL !== undefined && ID_ROL !== null) {
+//       campos.ID_ROL = ID_ROL;
+//     }
+
+//     // Convertir valores a mayúsculas donde corresponda
+//     if (campos.USUARIO) campos.USUARIO = campos.USUARIO.toUpperCase();
+//     if (campos.NOMBRE_USUARIO)
+//       campos.NOMBRE_USUARIO = campos.NOMBRE_USUARIO.toUpperCase();
+//     if (campos.CORREO_ELECTRONICO)
+//       campos.CORREO_ELECTRONICO = campos.CORREO_ELECTRONICO.toUpperCase();
+//     if (campos.DIRECCION_1)
+//       campos.DIRECCION_1 = campos.DIRECCION_1.toUpperCase();
+//     if (campos.DIRECCION_2)
+//       campos.DIRECCION_2 = campos.DIRECCION_2.toUpperCase();
+
+//     // Si hay cambios, actualiza el usuario
+//     if (Object.keys(campos).length > 0) {
+//       await usuario.update(campos);
+//     }
+
+//     res
+//       .status(200)
+//       .json({ msg: `Usuario con ID ${ID_USUARIO} actualizado correctamente.` });
+//   } catch (error) {
+//     console.error("Error al actualizar el usuario:", error);
+//     res.status(500).json({ msg: "Error al actualizar el usuario." });
+//   }
+// };
 
 // export const updateUsuario = async (req: Request, res: Response) => {
 //   const {
