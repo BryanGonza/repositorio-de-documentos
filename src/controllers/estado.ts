@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
-import {  estado } from "../models/estado";
+import sequelize from "../database/conexion"; 
 
-// Insertar 
-export const createEstado= async (req: Request, res: Response) => {
-    const { ESTADO} = req.body;
+// Insertar estado usando procedimiento almacenado
+export const createEstado = async (req: Request, res: Response) => {
+    const { ESTADO } = req.body;
 
     try {
-        const Nuevo_Registro = await estado.create({ 
-           ESTADO
-        });
+        const [Nuevo_Registro] = await sequelize.query(
+            `CALL PINSERT_ESTADO(:estado);`,
+            {
+                replacements: { estado: ESTADO }
+            }
+        );
 
         res.json({
             msg: 'Registro creado correctamente',
@@ -22,63 +25,57 @@ export const createEstado= async (req: Request, res: Response) => {
     }
 };
 
-// Obtener todos los registros
- 
+// Obtener todos los estados usando procedimiento almacenado
 export const getEstado = async (req: Request, res: Response) => {
-    const Listado_Estado = await estado.findAll();
-    res.json({Listado_Estado})
-}
-
-// Actualizar 
-
-export const updateEstado = async (req: Request, res: Response) => {
-    const { 
-    ID_ESTADO,
-    ESTADO
-    } = req.body;
-
-  try {
-    // Buscar el registro por su id
-    const estados = await estado.findOne({ where: { ID_ESTADO} });
-
-    if (!estados) {
-      return res.status(404).json({
-        msg: `No se encontró un registro con el ID ${ID_ESTADO}.`,
-      });
+    try {
+        const Lista_Estado = await sequelize.query(`CALL PSELECT_ESTADO();`);
+        res.json({ Listado_Estado:Lista_Estado });
+    } catch (error) {
+        res.status(500).json({
+            msg: 'Error al obtener registros',
+            error
+        });
     }
-
-      // actualizar los campos que vienen en el body 
-      await estados.update({
-        ID_ESTADO: ID_ESTADO?? estados.ID_ESTADO,
-        ESTADO: ESTADO ?? estados.ESTADO
-    });
-
-    res.status(200).json({
-      msg: `Registro con ID ${ID_ESTADO} actualizado correctamente.`,
-   
-    });
-  } catch (error) {
-    console.error("Error al actualizar el registro:", error);
-    res.status(500).json({
-      msg: "Error al actualizar el registro.",
-    });
-  }
 };
 
+// Actualizar estado usando procedimiento almacenado
+export const updateEstado = async (req: Request, res: Response) => {
+    const { ID_ESTADO, ESTADO } = req.body;
 
-//eliminar mediante id
-  export const deleteEstado = async (req: Request, res: Response) => {
-    const { ID_ESTADO } = req.body;
     try {
-        const deletedCount = await estado.destroy({
-            where: { ID_ESTADO: ID_ESTADO},
-        });
+        await sequelize.query(
+            `CALL PUPDATE_ESTADO(:id, :estado);`,
+            {
+                replacements: {
+                    id: ID_ESTADO,
+                    estado: ESTADO
+                }
+            }
+        );
 
-        if (deletedCount === 0) {
-            return res.status(404).json({
-                msg: `No se encontró un registro con el ID ${ID_ESTADO}.`,
-            });
-        }
+        res.status(200).json({
+            msg: `Registro con ID ${ID_ESTADO} actualizado correctamente.`,
+        });
+    } catch (error) {
+        console.error("Error al actualizar el registro:", error);
+        res.status(500).json({
+            msg: "Error al actualizar el registro.",
+        });
+    }
+};
+
+// Eliminar estado usando procedimiento almacenado
+export const deleteEstado = async (req: Request, res: Response) => {
+    const { ID_ESTADO } = req.body;
+
+    try {
+        await sequelize.query(
+            `CALL PDELETE_ESTADO(:id);`,
+            {
+                replacements: { id: ID_ESTADO }
+            }
+        );
+
         res.json({
             msg: `Registro con ID ${ID_ESTADO} eliminado exitosamente.`,
         });
