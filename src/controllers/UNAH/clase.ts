@@ -29,31 +29,6 @@ export const getClase = async (req: Request, res: Response) => {
   }
 };
 
-<<<<<<< HEAD
-
-//eliminar mediante id
-  export const deleteClase = async (req: Request, res: Response) => {
-    const { ID_CLASE } = req.body;
-    try {
-        const deletedCount = await clases.destroy({
-            where: { ID_CLASE: ID_CLASE },
-        });
-
-        if (deletedCount === 0) {
-            return res.status(404).json({
-                msg: `No se encontró un registro con el ID ${ID_CLASE}.`,
-            });
-        }
-        res.json({
-            msg: `Registro con ID ${ID_CLASE} eliminado exitosamente.`,
-        });
-    } catch (error) {
-        console.error('Error al eliminar el registro:', error);
-        res.status(500).json({
-            msg: 'Error al eliminar el registro.',
-        });
-    }
-=======
 // Crear una nueva clase
 export const createClase = async (req: Request, res: Response) => {
   const { NOMBRE, APROBADO, RECEPCIONADO, FORMATO, ESTADO } = req.body;
@@ -151,5 +126,4 @@ export const deleteClase = async (req: Request, res: Response) => {
     const msg = error?.original?.sqlMessage || "Error al eliminar la clase.";
     res.status(500).json({ msg });
   }
->>>>>>> 421f3d2379d885e91410d9e83ebbbc659c5e403b
 };

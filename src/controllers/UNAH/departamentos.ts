@@ -47,31 +47,6 @@ export const createDep = async (req: Request, res: Response) => {
 };
 
 
-<<<<<<< HEAD
-//eliminar mediante id
-  export const deleteDep = async (req: Request, res: Response) => {
-    const { ID_DEPARTAMENTO } = req.body;
-    try {
-        const deletedCount = await departamentos.destroy({
-            where: { ID_DEPARTAMENTO: ID_DEPARTAMENTO },
-        });
-
-        if (deletedCount === 0) {
-            return res.status(404).json({
-                msg: `No se encontró un registro con el ID ${ID_DEPARTAMENTO}.`,
-            });
-        }
-        res.json({
-            msg: `Registro con ID ${ID_DEPARTAMENTO} eliminado exitosamente.`,
-        });
-    } catch (error) {
-        console.error('Error al eliminar el registro:', error);
-        res.status(500).json({
-            msg: 'Error al eliminar el registro.',
-        });
-    }
-};
-=======
 
 
 // Actualizar un departamento
@@ -136,4 +111,3 @@ export const deleteDep = async (req: Request, res: Response) => {
     res.status(500).json({ msg });
   }
 };
->>>>>>> 421f3d2379d885e91410d9e83ebbbc659c5e403b

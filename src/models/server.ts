@@ -22,13 +22,13 @@ import rSubCategoria from "../routes/s_categoria";
 import rCaracteristica from "../routes/caracteristica"
 import  rVersion from "../routes/version";
 import  rEstructuraArchivos  from "../routes/estructura_archivos";
-<<<<<<< HEAD
+
 import rTipoDocCaracteristica from "../routes/TipoDocumetoCaracteristica";
 
 
-=======
+
 import reporteDocumentosRoutes from '../routes/Reporte';
->>>>>>> 421f3d2379d885e91410d9e83ebbbc659c5e403b
+
 //Modelos
 import {ms_objetos} from './objetos';
 import {estado} from './estado';
