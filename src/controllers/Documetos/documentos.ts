@@ -15,6 +15,7 @@ import { tipoDocumentoCaracteristica } from "../../models/Documentos/TipoDocCara
 import { departamentos } from "../../models/UNAH/departamentos";
 import { categoria } from "../../models/Documentos/categoria";
 import { s_categoria } from "../../models/Documentos/s_categoria";
+
 import { clases } from "../../models/UNAH/clase";
 import { tipo_archivo } from "../../models/Documentos/tipo_archivo";
 import { caracteristica } from "../../models/Documentos/caracteristica";
@@ -24,10 +25,12 @@ dotenv.config();
 
 const KEYFILEPATH = path.join(__dirname, "../credencialesGD.json");
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
+
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
   scopes: SCOPES,
 });
+
 const drive = google.drive({ version: "v3", auth });
 
 // Tipos
@@ -57,6 +60,7 @@ export const SubirDoc = async (req: Request, res: Response) => {
     ID_TIPO_ARCHIVO,
     ID_CATEGORIA,
     ID_SUB_CATEGORIA,
+
     ID_TIPO_DOCUMENTO,
     caracteristicas: RAW,
   } = req.body as Record<string, string>;
@@ -92,10 +96,12 @@ export const SubirDoc = async (req: Request, res: Response) => {
   const media = {
     mimeType: req.file.mimetype,
     body: fs.createReadStream(req.file.path),
+
   };
 
   const t = await sequelize.transaction();
   try {
+
     // 5) Plantilla de características
     const defs = (await tipoDocumentoCaracteristica.findAll({
       where: { ID_TIPO_DOCUMENTO },
@@ -217,12 +223,14 @@ export const SubirDoc = async (req: Request, res: Response) => {
       },
       { transaction: t }
     );
+
     await documentos.update(
       { ID_VERSION: ver.ID_VERSION },
       { where: { ID_DOCUMENTO: doc.ID_DOCUMENTO }, transaction: t }
     );
 
     await t.commit();
+
     return res.status(201).json({
       msg: "Documento registrado con éxito",
       documento: doc,
@@ -369,6 +377,7 @@ export const SubirDoc = async (req: Request, res: Response) => {
 //   }
 // };
 //subir documento antes de las modificaciones
+
 // export const SubirDoc = async (req: Request, res: Response) => {
 //   console.log(req.file?.originalname);
 //   if (!req.file) {
@@ -414,6 +423,7 @@ export const SubirDoc = async (req: Request, res: Response) => {
 
 //     const { ID_USUARIO, ES_PUBLICO, DESCRIPCION, NOMBRE } = req.body;
 
+
 //     // Guardar la información del archivo en la base de datos
 //     await documentos.create({
 //       ID_USUARIO,
@@ -444,6 +454,7 @@ export const SubirDoc = async (req: Request, res: Response) => {
 //   }
 // };
 
+
 export const EliminarDoc = async (req: Request, res: Response) => {
   const { idDocumento } = req.params;
 
@@ -451,10 +462,12 @@ export const EliminarDoc = async (req: Request, res: Response) => {
 
   try {
     // Buscar el documento
+
     const documento = await documentos.findOne({
       where: { ID_DOCUMENTO: idDocumento },
       transaction: t,
     });
+
 
     if (!documento) {
       await t.rollback();
@@ -470,9 +483,11 @@ export const EliminarDoc = async (req: Request, res: Response) => {
       }
     } catch (error: any) {
       if (error.code === 404) {
+
         console.warn(
           `Drive: archivo ${fileId} no existe, continuo borrando DB`
         );
+
       } else {
         console.error("Error eliminando de Drive:", error);
         throw new Error("Error eliminando en Drive");
@@ -480,6 +495,7 @@ export const EliminarDoc = async (req: Request, res: Response) => {
     }
 
     // Buscar todos los detalles vinculados a este documento
+
     const detalles = (await documentoDet.findAll({
       where: { ID_DOCUMENTO: idDocumento },
       attributes: ["ID_DOCUMENTO_DET"],
@@ -489,40 +505,51 @@ export const EliminarDoc = async (req: Request, res: Response) => {
 
     const detalleIds = detalles.map((d) => d.ID_DOCUMENTO_DET);
 
+
     if (detalleIds.length > 0) {
       // Primero eliminar versiones vinculadas a los detalles
       await documentoVersiones.destroy({
         where: { ID_DOCUMENTO_DET: detalleIds },
+
         transaction: t,
+
       });
 
       // Luego eliminar los detalles mismos
       await documentoDet.destroy({
         where: { ID_DOCUMENTO: idDocumento },
+
         transaction: t,
+
       });
     }
 
     // Eliminar las características dinámicas asociadas al documento
+
     // await tipoDocumentoCaracteristica.destroy({
     //   where: { ID_DOCUMENTO: idDocumento },
     //   transaction: t
     // });
 
+
     // Ahora eliminar el documento principal
     await documentos.destroy({
       where: { ID_DOCUMENTO: idDocumento },
+
       transaction: t,
+
     });
 
     await t.commit(); // Confirmar cambios
     res.json({ msg: "Documento eliminado correctamente" });
+
   } catch (error) {
     console.error("Error al eliminar el documento:", error);
     await t.rollback();
     res.status(500).json({ msg: "Error al eliminar el documento" });
   }
 };
+
 
 export const getDocumetos = async (req: Request, res: Response) => {
   try {
@@ -544,11 +571,13 @@ export const getDocumetos = async (req: Request, res: Response) => {
 };
 // GET /api/documentos/:id
 export const getDocumentoDetalle = async (req: Request, res: Response) => {
+
   const id = req.params.id;
   const doc = await documentos.findByPk(id, {
     include: [
       {
         model: documentoDet,
+
         as: "detalles",
         include: [
           { model: departamentos, as: "departamento", attributes: ["Nombre"] },
@@ -581,6 +610,7 @@ export const getDocumentoDetalle = async (req: Request, res: Response) => {
     ],
   });
   if (!doc) return res.status(404).json({ msg: "No existe ese documento" });
+
   res.json({ doc });
 };
 
@@ -590,7 +620,9 @@ export const getCorreoUsuario = async (req: Request, res: Response) => {
   try {
     const usuario = await ms_usuarios.findOne({
       where: { ID_USUARIO: idUsuario },
+
       attributes: ["CORREO_ELECTRONICO"],
+
     });
 
     if (!usuario) {
@@ -602,7 +634,9 @@ export const getCorreoUsuario = async (req: Request, res: Response) => {
     console.error("Error al obtener el correo del usuario:", error);
     res.status(500).json({ msg: "Error al obtener el correo del usuario" });
   }
+
 };
+
 export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
   const { idUsuario } = req.params;
   console.log(idUsuario);
@@ -612,6 +646,7 @@ export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
       where: { ID_USUARIO: idUsuario },
       attributes: [
         "ID_DOCUMENTO",
+
         "ID_USUARIO",
         "ID_ESTADO",
         "NOMBRE",
@@ -625,6 +660,7 @@ export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
       order: [
         ["FECHA_SUBIDA", "DESC"], // Ordenar por fecha descendente (más recientes primero)
       ],
+
     });
 
     if (!documentosUsuario.length) {
@@ -637,6 +673,7 @@ export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
     res.status(500).json({ msg: "Error al obtener documentos del usuario" });
   }
 };
+
 
 // import { Request, Response } from "express";
 
@@ -658,6 +695,7 @@ export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
 //   });
 // };
 
+
 // if (!req.file) {
 //     return res.status(400).json({ msg: "No se ha subido ningún archivo" });
 // }
@@ -669,3 +707,4 @@ export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
 //     msg: "Docuemto Subido Correctamente",
 //     file: req.file as Express.Multer.File
 // });
+

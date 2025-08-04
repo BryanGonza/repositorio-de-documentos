@@ -119,7 +119,9 @@ export const login = async (req: Request, res: Response) => {
               replacements: [CORREO_ELECTRONICO, CONTRASEÑA],
           }
       );
+
       console.log('→ Resultado SP ValidarUsuarioCompleto:', resultado);
+
 
       const datosUsuario = Array.isArray(resultado) ? resultado[0] : resultado;
 
@@ -156,8 +158,10 @@ export const login = async (req: Request, res: Response) => {
               id: datosUsuario.ID_USUARIO,
               CORREO_ELECTRONICO,
               rol: datosUsuario.ID_ROL,
+
               nombreRol: datosUsuario.ROL,
               departamento: datosUsuario.ID_DEPARTAMENTO,
+
           },
           secretKey,
           signOptions
@@ -170,8 +174,10 @@ export const login = async (req: Request, res: Response) => {
           usuario: {  
               id: datosUsuario.ID_USUARIO,
               rol: datosUsuario.ID_ROL,
+
               nombreRol: datosUsuario.ROL,
                departamento: datosUsuario.ID_DEPARTAMENTO
+
           }
       });
 

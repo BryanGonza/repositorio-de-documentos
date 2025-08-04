@@ -12,6 +12,8 @@ export const Facultad = sequelize.define(
             allowNull: false
         },
         NOMBRE: {type: DataTypes.STRING,allowNull: true},
+        DESCRIPCION: {type: DataTypes.STRING,allowNull: true},
+
         ESTADO: {type: DataTypes.BOOLEAN,allowNull: true}
     },
     {

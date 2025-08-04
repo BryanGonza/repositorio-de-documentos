@@ -1,97 +1,88 @@
-import { Request, Response } from "express";
-import {  caracteristica } from "../../models/Documentos/caracteristica";
+import { Request, Response } from 'express';
+import sequelize from '../../database/conexion';
 
-// Insertar 
-export const createCaracteristica= async (req: Request, res: Response) => {
-    const { ID_TIPO_CARACTERISTICA, CARACTERISTICA, VALORES_PREDETERMINADOS} = req.body;
-
-    try {
-        const Nuevo_Registro = await caracteristica.create({
-            ID_TIPO_CARACTERISTICA, 
-            CARACTERISTICA,
-            VALORES_PREDETERMINADOS
-        });
-
-        res.json({
-            msg: 'Registro creado correctamente',
-            Nuevo_Registro
-        });
-    } catch (error) {
-        res.status(500).json({
-            msg: 'Error al crear Registro',
-            error
-        });
-    }
-};
-
-// Obtener todos los registros
- 
+// ✅ Obtener todas las características
 export const getCaracteristica = async (req: Request, res: Response) => {
-    const Listado_Caracteristicas = await caracteristica.findAll();
-    res.json({Listado_Caracteristicas})
-}
-
-// Actualizar 
-
-export const updateCaracteristica = async (req: Request, res: Response) => {
-    const { 
-    ID_CARACTERISTICA,
-    ID_TIPO_CARACTERISTICA,
-    CARACTERISTICA,
-    VALORES_PREDETERMINADOS
-    } = req.body;
-
   try {
-    // Buscar el registro por su id
-    const caracteristicas = await caracteristica.findOne({ where: { ID_CARACTERISTICA} });
+    const result: any = await sequelize.query("CALL select_caracteristicas();");
 
-    if (!caracteristicas) {
-      return res.status(404).json({
-        msg: `No se encontró un registro con el ID ${ID_CARACTERISTICA}.`,
-      });
+    if (!result || result.length === 0) {
+      return res.status(404).json({ msg: "No hay características registradas." });
     }
 
-      // actualizar los campos que vienen en el body 
-      await caracteristicas.update({
-        ID_CARACTERISTICA: ID_CARACTERISTICA ?? caracteristicas.ID_CARACTERISTICA,
-        ID_TIPO_CARACTERISTICA: ID_TIPO_CARACTERISTICA ?? caracteristicas.ID_TIPO_CARACTERISTICA,
-        CARACTERISTICA: CARACTERISTICA ?? caracteristicas.CARACTERISTICA,
-        VALORES_PREDETERMINADOS: VALORES_PREDETERMINADOS ?? caracteristicas.VALORES_PREDETERMINADOS
-    });
-
-    res.status(200).json({
-      msg: `Registro con ID ${ID_CARACTERISTICA} actualizado correctamente.`,
-   
-    });
+    res.json({ Listado_Caracteristicas: result });
   } catch (error) {
-    console.error("Error al actualizar el registro:", error);
-    res.status(500).json({
-      msg: "Error al actualizar el registro.",
-    });
+    console.error("Error al obtener las características:", error);
+    res.status(500).json({ msg: "Error al obtener las características." });
   }
 };
 
+// ✅ Crear una nueva característica
+export const createCaracteristica = async (req: Request, res: Response) => {
+  const { ID_TIPO_CARACTERISTICA, CARACTERISTICA, VALORES_PREDETERMINADOS } = req.body;
 
-//eliminar mediante id
-  export const deleteCaracteristica = async (req: Request, res: Response) => {
-    const { ID_CARACTERISTICA } = req.body;
-    try {
-        const deletedCount = await caracteristica.destroy({
-            where: { ID_CARACTERISTICA: ID_CARACTERISTICA},
-        });
+  try {
+    await sequelize.query(`
+      CALL insertar_caracteristica(:ID_TIPO_CARACTERISTICA, :CARACTERISTICA, :VALORES_PREDETERMINADOS);
+    `, {
+      replacements: {
+        ID_TIPO_CARACTERISTICA,
+        CARACTERISTICA: CARACTERISTICA?.toUpperCase() || null,
+        VALORES_PREDETERMINADOS: VALORES_PREDETERMINADOS || null
+      }
+    });
 
-        if (deletedCount === 0) {
-            return res.status(404).json({
-                msg: `No se encontró un registro con el ID ${ID_CARACTERISTICA}.`,
-            });
-        }
-        res.json({
-            msg: `Registro con ID ${ID_CARACTERISTICA} eliminado exitosamente.`,
-        });
-    } catch (error) {
-        console.error('Error al eliminar el registro:', error);
-        res.status(500).json({
-            msg: 'Error al eliminar el registro.',
-        });
+    res.status(201).json({ msg: "Característica creada correctamente." });
+  } catch (error) {
+    console.error("Error al crear la característica:", error);
+    res.status(500).json({ msg: "Error al crear la característica." });
+  }
+};
+
+// ✅ Actualizar una característica
+export const updateCaracteristica = async (req: Request, res: Response) => {
+  const { ID_CARACTERISTICA, ID_TIPO_CARACTERISTICA, CARACTERISTICA, VALORES_PREDETERMINADOS } = req.body;
+
+  try {
+    const id = parseInt(ID_CARACTERISTICA);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ msg: "El ID de la característica debe ser un número válido." });
     }
+
+    await sequelize.query(`
+      CALL actualizar_caracteristica(:ID_CARACTERISTICA, :ID_TIPO_CARACTERISTICA, :CARACTERISTICA, :VALORES_PREDETERMINADOS);
+    `, {
+      replacements: {
+        ID_CARACTERISTICA: id,
+        ID_TIPO_CARACTERISTICA,
+        CARACTERISTICA: CARACTERISTICA?.toUpperCase() || null,
+        VALORES_PREDETERMINADOS: VALORES_PREDETERMINADOS || null
+      }
+    });
+
+    res.status(200).json({ msg: `Característica con ID ${id} actualizada correctamente.` });
+  } catch (error) {
+    console.error("Error al actualizar la característica:", error);
+    res.status(500).json({ msg: "Error al actualizar la característica." });
+  }
+};
+
+// ✅ Eliminar una característica
+export const deleteCaracteristica = async (req: Request, res: Response) => {
+  const { ID_CARACTERISTICA } = req.body;
+
+  try {
+    await sequelize.query(`
+      CALL eliminar_caracteristica(:ID_CARACTERISTICA);
+    `, {
+      replacements: { ID_CARACTERISTICA }
+    });
+
+    res.json({ msg: `Característica con ID ${ID_CARACTERISTICA} eliminada exitosamente.` });
+  } catch (error: any) {
+    console.error("Error al eliminar la característica:", error);
+    const msg = error?.original?.sqlMessage || "Error al eliminar la característica.";
+    res.status(500).json({ msg });
+  }
 };

@@ -1,5 +1,7 @@
+
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../../database/conexion';
+
 
 export const tipoDocumentoCaracteristica = sequelize.define(
   'tipo_documento_caracteristica',
@@ -14,9 +16,11 @@ export const tipoDocumentoCaracteristica = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false
     },
+
     ID_TIPO_DOCUMENTO: {
       type: DataTypes.INTEGER,
       allowNull: false
+
     }
   },
   {
@@ -26,8 +30,10 @@ export const tipoDocumentoCaracteristica = sequelize.define(
   }
 );
 
+
 // Definición completa de asociaciones
 export function setupTipoDocumentoCaracteristicaAssociations(models: any) {
+
   tipoDocumentoCaracteristica.belongsTo(models.caracteristica, {
     foreignKey: 'ID_CARACTERISTICA',
     targetKey: 'ID_CARACTERISTICA',
@@ -40,3 +46,4 @@ export function setupTipoDocumentoCaracteristicaAssociations(models: any) {
     as: 'tipoDocumento'
   });
 }
+

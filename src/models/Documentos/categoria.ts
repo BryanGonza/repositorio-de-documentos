@@ -19,4 +19,6 @@ export const categoria = sequelize.define(
         tableName: 'tbl_categoria',
         freezeTableName: true,
     }
+
 );
+

@@ -11,4 +11,5 @@ router.put("/api/objetos/updateObjetos", validarTokenConPermisos, validarPermiso
 router.delete("/api/objetos/deleteObjetos", validarTokenConPermisos, validarPermiso('eliminacion', 'OBJETO'), deleteObjetos);
 router.get("/api/objetos/objetosPermisos", validarTokenConPermisos, getObjetosConPermisos);
 
+
 export default router;

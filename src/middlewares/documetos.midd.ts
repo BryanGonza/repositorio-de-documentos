@@ -1,4 +1,6 @@
+
 import { Request, Response, NextFunction } from "express";
+
 import multer from "multer";
 import { google } from "googleapis";
 import dotenv from "dotenv";
@@ -6,6 +8,7 @@ import path from "path";
 import fs from "fs";
 
 dotenv.config();
+
 
 const KEYFILEPATH = path.join(__dirname, "../credencialesGD.json");
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
@@ -52,21 +55,25 @@ export const cargas = (req: Request, res: Response, next: NextFunction) => {
         }
         return res.status(400).json({ msg: `Error de Multer: ${err.message}` });
       }
+
       return res.status(400).json({ msg: err.message });
     }
 
     if (!req.file) {
+
       return res.status(400).json({ msg: "No se ha seleccionado ningún archivo" });
     }
 
     // Verificar que el archivo se subió correctamente
     if (!fs.existsSync(req.file.path)) {
       return res.status(500).json({ msg: "Error al guardar el archivo temporal" });
+
     }
 
     next();
   });
 };
+
 
 // Ejemplo de endpoint que usa el middleware
 export const subirDocumento = async (req: Request, res: Response) => {
@@ -172,6 +179,7 @@ export const subirDocumento = async (req: Request, res: Response) => {
 //     next();
 //   });
 // };
+
 
 
 

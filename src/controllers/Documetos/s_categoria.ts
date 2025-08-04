@@ -1,97 +1,121 @@
 import { Request, Response } from "express";
-import {  s_categoria } from "../../models/Documentos/s_categoria";
 
-// Insertar 
-export const createS_categoria= async (req: Request, res: Response) => {
-    const {ID_CATEGORIA, SUB_CATEGORIA, ESTADO} = req.body;
+import sequelize from "../../database/conexion";
 
-    try {
-        const Nuevo_Registro = await s_categoria.create({ 
-            ID_CATEGORIA,
-            SUB_CATEGORIA,
-            ESTADO
-        });
-
-        res.json({
-            msg: 'Registro creado correctamente',
-            Nuevo_Registro
-        });
-    } catch (error) {
-        res.status(500).json({
-            msg: 'Error al crear Registro',
-            error
-        });
-    }
-};
-
-// Obtener todos los registros
- 
-export const getS_categoria = async (req: Request, res: Response) => {
-    const Listado_Sub_Categoria = await s_categoria.findAll();
-    res.json({Listado_Sub_Categoria})
-}
-
-// Actualizar 
-
-export const updateS_categoria = async (req: Request, res: Response) => {
-    const { 
-    ID_SUB_CATEGORIA,
-    ID_CATEGORIA,
-    SUB_CATEGORIA,
-    ESTADO
-    } = req.body;
+// Crear una nueva sub-categoría
+export const createS_categoria = async (req: Request, res: Response) => {
+  const { ID_CATEGORIA, SUB_CATEGORIA, ESTADO } = req.body;
 
   try {
-    // Buscar el registro por su id
-    const s_categorias = await s_categoria.findOne({ where: { ID_SUB_CATEGORIA} });
+    await sequelize.query(
+      `CALL crear_sub_categoria(
+        :ID_CATEGORIA,
+        :SUB_CATEGORIA,
+        :ESTADO
+      );`,
+      {
+        replacements: {
+          ID_CATEGORIA,
+          SUB_CATEGORIA: SUB_CATEGORIA ? SUB_CATEGORIA.toUpperCase() : null,
+          ESTADO: ESTADO ? 1 : 0,
+        },
+      }
+    );
 
-    if (!s_categorias) {
-      return res.status(404).json({
-        msg: `No se encontró un registro con el ID ${ID_SUB_CATEGORIA}.`,
-      });
-    }
-
-      // actualizar los campos que vienen en el body 
-      await s_categorias.update({
-        ID_SUB_CATEGORIA: ID_SUB_CATEGORIA ?? s_categorias.ID_SUB_CATEGORIA,
-        ID_CATEGORIA: ID_CATEGORIA ?? s_categorias.ID_CATEGORIA,
-        SUB_CATEGORIA: SUB_CATEGORIA ?? s_categorias.SUB_CATEGORIA,
-        ESTADO: ESTADO ?? s_categorias.ESTADO,
+    res.status(201).json({
+      msg: `Sub-categoría ${SUB_CATEGORIA?.toUpperCase() || 'sin nombre'} creada correctamente.`,
     });
-
-    res.status(200).json({
-      msg: `Registro con ID ${ID_SUB_CATEGORIA} actualizado correctamente.`,
-   
-    });
-  } catch (error) {
-    console.error("Error al actualizar el registro:", error);
+  } catch (error: any) {
+    console.error("Error al crear la sub-categoría:", error);
     res.status(500).json({
-      msg: "Error al actualizar el registro.",
+      msg: `Error al crear la sub-categoría ${SUB_CATEGORIA?.toUpperCase() || ''}.`,
+      error,
+
     });
   }
 };
 
 
-//eliminar mediante id
-  export const deleteS_categoria = async (req: Request, res: Response) => {
-    const { ID_SUB_CATEGORIA } = req.body;
-    try {
-        const deletedCount = await s_categoria.destroy({
-            where: { ID_SUB_CATEGORIA: ID_SUB_CATEGORIA},
-        });
+// Obtener todas las sub-categorías (devuelve NOMBRE_CATEGORIA)
+export const getS_categoria = async (req: Request, res: Response) => {
+  try {
+    const result: any = await sequelize.query("CALL obtener_sub_categorias();");
 
-        if (deletedCount === 0) {
-            return res.status(404).json({
-                msg: `No se encontró un registro con el ID ${ID_SUB_CATEGORIA}.`,
-            });
-        }
-        res.json({
-            msg: `Registro con ID ${ID_SUB_CATEGORIA} eliminado exitosamente.`,
-        });
-    } catch (error) {
-        console.error('Error al eliminar el registro:', error);
-        res.status(500).json({
-            msg: 'Error al eliminar el registro.',
-        });
+    if (!result || result.length === 0) {
+      return res.status(404).json({ msg: "No hay sub-categorías registradas." });
     }
+
+    const listaSubCategorias = result.map((sub: any) => ({
+      ID_SUB_CATEGORIA: sub.ID_SUB_CATEGORIA,
+      SUB_CATEGORIA: sub.SUB_CATEGORIA,
+      ESTADO: sub.ESTADO === 1,
+      NOMBRE_CATEGORIA: sub.NOMBRE_CATEGORIA, // Solo nombre
+    }));
+
+    res.json({ Listado_Sub_Categoria: listaSubCategorias });
+  } catch (error) {
+    console.error("Error al obtener las sub-categorías:", error);
+    res.status(500).json({
+      msg: "Error al obtener la lista de sub-categorías.",
+    });
+  }
+};
+
+// Actualizar sub-categoría
+export const updateS_categoria = async (req: Request, res: Response) => {
+  const { ID_SUB_CATEGORIA, ID_CATEGORIA, SUB_CATEGORIA, ESTADO } = req.body;
+
+  try {
+    const id = parseInt(ID_SUB_CATEGORIA);
+    if (isNaN(id)) {
+      return res.status(400).json({ msg: "El ID de la sub-categoría debe ser un número válido." });
+    }
+
+    await sequelize.query(
+      `CALL actualizar_sub_categoria(
+        :ID_SUB_CATEGORIA,
+        :ID_CATEGORIA,
+        :SUB_CATEGORIA,
+        :ESTADO
+      );`,
+      {
+        replacements: {
+          ID_SUB_CATEGORIA: id,
+          ID_CATEGORIA,
+          SUB_CATEGORIA: SUB_CATEGORIA ? SUB_CATEGORIA.toUpperCase() : null,
+          ESTADO: ESTADO ? 1 : 0,
+        },
+      }
+    );
+
+    res.status(200).json({ msg: `Sub-categoría con ID ${id} actualizada correctamente.` });
+  } catch (error: any) {
+    console.error("Error al actualizar la sub-categoría:", error);
+    res.status(500).json({
+      msg: "Error al actualizar la sub-categoría.",
+      error,
+    });
+  }
+};
+
+// Eliminar sub-categoría
+export const deleteS_categoria = async (req: Request, res: Response) => {
+  const { ID_SUB_CATEGORIA } = req.body;
+
+  try {
+    await sequelize.query('CALL eliminar_sub_categoria(:ID_SUB_CATEGORIA)', {
+      replacements: { ID_SUB_CATEGORIA },
+    });
+
+    res.json({
+      msg: `Sub-categoría con ID ${ID_SUB_CATEGORIA} eliminada exitosamente.`,
+    });
+  } catch (error: any) {
+    console.error("Error al eliminar la sub-categoría:", error);
+    res.status(500).json({
+      msg: "Error al eliminar la sub-categoría.",
+      error,
+    });
+  }
+
 };

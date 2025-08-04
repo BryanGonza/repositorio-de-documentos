@@ -2,7 +2,9 @@ const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize(
   "repositorio_documentos2_0",
   "root",
+
   "contrasena123",
+
   {
     host: "localhost",
     dialect: "mysql",
@@ -10,3 +12,4 @@ const sequelize = new Sequelize(
 );
 
 export default sequelize;
+

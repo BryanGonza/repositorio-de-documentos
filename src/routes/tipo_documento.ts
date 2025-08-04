@@ -11,4 +11,5 @@ router.put("/api/tipo_documento/updateTipo_d",  validarTokenConPermisos, validar
 router.delete("/api/tipo_documento/deleteTipo_d", validarTokenConPermisos, validarPermiso('eliminacion', 'TIPO DE DOCUMENTO'), deleteTipo_d);
 
 
+
 export default router;

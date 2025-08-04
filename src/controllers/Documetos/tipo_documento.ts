@@ -1,94 +1,106 @@
-import { Request, Response } from "express";
-import {  tipo_documento } from "../../models/Documentos/tipo_documento";
 
-// Insertar 
-export const createTipo_d = async (req: Request, res: Response) => {
-    const { TIPO_DOCUMENTO, ESTADO} = req.body;
+import { Request, Response } from 'express';
+import sequelize from '../../database/conexion';
 
-    try {
-        const Nuevo_Registro = await tipo_documento.create({
-            TIPO_DOCUMENTO,
-            ESTADO
-        });
-
-        res.json({
-            msg: 'Registro creado correctamente',
-            Nuevo_Registro
-        });
-    } catch (error) {
-        res.status(500).json({
-            msg: 'Error al crear Registro',
-            error
-        });
-    }
-};
-
-// Obtener todos los registros
- 
+// Obtener todos los tipos de documento
 export const getTipo_d = async (req: Request, res: Response) => {
-    const Listado_Tipo_Documentos = await tipo_documento.findAll();
-    res.json({Listado_Tipo_Documentos})
-}
-
-// Actualizar 
-
-export const updateTipo_d = async (req: Request, res: Response) => {
-    const { 
-    ID_TIPO_DOCUMENTO,
-    TIPO_DOCUMENTO,
-    ESTADO
-    } = req.body;
-
   try {
-    // Buscar el registro por su id
-    const tipo_documentos = await tipo_documento.findOne({ where: { ID_TIPO_DOCUMENTO} });
+    const result: any = await sequelize.query("CALL obtener_tbl_tipo_documento();");
 
-    if (!tipo_documentos) {
-      return res.status(404).json({
-        msg: `No se encontró un registro con el ID ${ID_TIPO_DOCUMENTO}.`,
-      });
+    if (!result || result.length === 0) {
+      return res.status(404).json({ msg: "No hay tipos de documento registrados." });
     }
 
-      // actualizar los campos que vienen en el body 
-      await tipo_documentos.update({
-        ID_TIPO_DOCUMENTO: ID_TIPO_DOCUMENTO ?? tipo_documentos.ID_TIPO_DOCUMENTO,
-        TIPO_DOCUMENTO: TIPO_DOCUMENTO?? tipo_documentos.TIPO_DOCUMENTO,
-        ESTADO: ESTADO ?? tipo_documentos.ESTADO
-    });
-
-    res.status(200).json({
-      msg: `Registro con ID ${ID_TIPO_DOCUMENTO} actualizado correctamente.`,
-   
-    });
+    res.json({ Listado_Tipo_Documentos: result });
   } catch (error) {
-    console.error("Error al actualizar el registro:", error);
+    console.error("Error al obtener los tipos de documento:", error);
     res.status(500).json({
-      msg: "Error al actualizar el registro.",
+      msg: "Error al obtener la lista de tipos de documento.",
+
     });
   }
 };
 
 
-//eliminar mediante id
-  export const deleteTipo_d = async (req: Request, res: Response) => {
-    const { ID_TIPO_DOCUMENTO } = req.body;
-    try {
-        const deletedCount = await tipo_documento.destroy({
-            where: { ID_TIPO_DOCUMENTO: ID_TIPO_DOCUMENTO },
-        });
+// Crear un nuevo tipo de documento
+export const createTipo_d = async (req: Request, res: Response) => {
+  const { TIPO_DOCUMENTO, ESTADO } = req.body;
 
-        if (deletedCount === 0) {
-            return res.status(404).json({
-                msg: `No se encontró un registro con el ID ${ID_TIPO_DOCUMENTO}.`,
-            });
+  try {
+    await sequelize.query(
+      `CALL crear_tbl_tipo_documento(:TIPO_DOCUMENTO, :ESTADO);`,
+      {
+        replacements: {
+          TIPO_DOCUMENTO: TIPO_DOCUMENTO ? TIPO_DOCUMENTO.toUpperCase() : null,
+          ESTADO: ESTADO ?? null
         }
-        res.json({
-            msg: `Registro con ID ${ID_TIPO_DOCUMENTO} eliminado exitosamente.`,
-        });
-    } catch (error) {
-        console.error('Error al eliminar el registro:', error);
-        res.status(500).json({
-            msg: 'Error al eliminar el registro.',
-        });
+      }
+    );
+
+    res.status(201).json({
+      msg: `Tipo de documento ${TIPO_DOCUMENTO?.toUpperCase() || 'sin nombre'} creado correctamente.`,
+    });
+
+  } catch (error: any) {
+    console.error("Error al crear el tipo de documento:", error);
+    res.status(500).json({
+      msg: `Error al crear el tipo de documento ${TIPO_DOCUMENTO?.toUpperCase() || ''}.`,
+    });
+  }
+};
+
+// Actualizar tipo de documento
+export const updateTipo_d = async (req: Request, res: Response) => {
+  const { ID_TIPO_DOCUMENTO, TIPO_DOCUMENTO, ESTADO } = req.body;
+
+  try {
+    const id = parseInt(ID_TIPO_DOCUMENTO);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ msg: "El ID del tipo de documento debe ser un número válido." });
     }
+
+    await sequelize.query(`CALL actualizar_tbl_tipo_documento(
+      :ID_TIPO_DOCUMENTO,
+      :TIPO_DOCUMENTO,
+      :ESTADO
+    )`, {
+      replacements: {
+        ID_TIPO_DOCUMENTO: id,
+        TIPO_DOCUMENTO: TIPO_DOCUMENTO ? TIPO_DOCUMENTO.toUpperCase() : null,
+        ESTADO: ESTADO ?? null
+      }
+    });
+
+    res.status(200).json({ msg: `Tipo de documento con ID ${id} actualizado correctamente.` });
+  } catch (error: any) {
+    console.error("Error al actualizar el tipo de documento:", error);
+
+    if (error.original?.sqlMessage) {
+      return res.status(400).json({ msg: error.original.sqlMessage });
+    }
+
+    res.status(500).json({ msg: "Error al actualizar el tipo de documento." });
+  }
+};
+
+// Eliminar tipo de documento
+export const deleteTipo_d = async (req: Request, res: Response) => {
+  const { ID_TIPO_DOCUMENTO } = req.body;
+
+  try {
+    await sequelize.query('CALL eliminar_tbl_tipo_documento(:ID_TIPO_DOCUMENTO)', {
+      replacements: { ID_TIPO_DOCUMENTO },
+    });
+
+    res.json({
+      msg: `Tipo de documento con ID ${ID_TIPO_DOCUMENTO} eliminado exitosamente.`,
+    });
+  } catch (error: any) {
+    console.error("Error al eliminar el tipo de documento:", error);
+
+    const msg = error?.original?.sqlMessage || "Error al eliminar el tipo de documento.";
+    res.status(500).json({ msg });
+  }
+
 };

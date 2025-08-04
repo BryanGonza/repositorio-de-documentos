@@ -13,7 +13,9 @@ import { documentoDet } from './Documentos/docuemtosDet';
 import { documentoVersiones } from './Documentos/docVersion';
 import { version } from './Documentos/version';
 import { tipoDocumentoCaracteristica } from './Documentos/TipoDocCaracteristica';
+
 import { tipo_documento } from './Documentos/tipo_documento';
+
 
 // Asociaciones permisos
 ms_objetos.hasMany(permisos, {
@@ -89,12 +91,14 @@ documentoDet.belongsTo(tipo_archivo, {
 
 
 
+
 // AAACaracterística dinámica ↔ documentos
 tipoDocumentoCaracteristica.belongsTo(tipo_documento, {
   foreignKey: 'ID_TIPO_DOCUMENTO',
   targetKey: 'ID_TIPO_DOCUMENTO',
   as: 'tipo_documento'
 });
+
 
 // Característica dinámica ↔ catálogo de características
 tipoDocumentoCaracteristica.belongsTo(caracteristica, {
@@ -108,7 +112,6 @@ tipoDocumentoCaracteristica.hasMany(documentoVersiones, {
   foreignKey: 'ID_TIPO_DOCUMENTO_CARACTERISTICA',
   as: 'versionesCaracteristica'
 });
-
 
 
 export {
