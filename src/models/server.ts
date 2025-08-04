@@ -22,6 +22,9 @@ import rSubCategoria from "../routes/s_categoria";
 import rCaracteristica from "../routes/caracteristica"
 import  rVersion from "../routes/version";
 import  rEstructuraArchivos  from "../routes/estructura_archivos";
+import rTipoDocCaracteristica from "../routes/TipoDocumetoCaracteristica";
+
+
 //Modelos
 import {ms_objetos} from './objetos';
 import {estado} from './estado';
@@ -44,6 +47,7 @@ import { estructura_archivos } from "../models/Documentos/estructura_archivos";
 import { documentoDet } from "./Documentos/docuemtosDet";
 import { documentoVersiones } from "./Documentos/docVersion";
 import { tipoDocumentoCaracteristica } from "./Documentos/TipoDocCaracteristica";
+import {DocumentoCaracteristica} from "./Documentos/DocumetoCaracteristica"
 
 
 
@@ -84,6 +88,8 @@ class Server {
     this.app.use(rCaracteristica);
     this.app.use(rVersion);
     this.app.use(rEstructuraArchivos);
+    this.app.use(rTipoDocCaracteristica);
+    
 
 
   }
@@ -131,6 +137,7 @@ class Server {
       await documentoDet.sync();
       await documentoVersiones.sync();
       await tipoDocumentoCaracteristica.sync();
+      await DocumentoCaracteristica.sync();
 
    
       console.log("Conectado ;)");

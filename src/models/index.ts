@@ -13,6 +13,7 @@ import { documentoDet } from './Documentos/docuemtosDet';
 import { documentoVersiones } from './Documentos/docVersion';
 import { version } from './Documentos/version';
 import { tipoDocumentoCaracteristica } from './Documentos/TipoDocCaracteristica';
+import { tipo_documento } from './Documentos/tipo_documento';
 
 // Asociaciones permisos
 ms_objetos.hasMany(permisos, {
@@ -86,25 +87,15 @@ documentoDet.belongsTo(tipo_archivo, {
   as: 'tipoArchivo'
 });
 
-// Detalle ↔ característica dinámica
-documentoDet.belongsTo(tipoDocumentoCaracteristica, {
-  foreignKey: 'ID_TIPO_DOCUMENTO_CARACTERISTICA',
-  targetKey: 'ID_TIPO_DOCUMENTO_CARACTERISTICA',
-  as: 'caracteristica'
+
+
+// AAACaracterística dinámica ↔ documentos
+tipoDocumentoCaracteristica.belongsTo(tipo_documento, {
+  foreignKey: 'ID_TIPO_DOCUMENTO',
+  targetKey: 'ID_TIPO_DOCUMENTO',
+  as: 'tipo_documento'
 });
 
-// Característica dinámica ↔ documentos
-tipoDocumentoCaracteristica.belongsTo(documentos, {
-  foreignKey: 'ID_DOCUMENTO',
-  targetKey: 'ID_DOCUMENTO',
-  as: 'documento'
-});
-// Característica dinámica ↔ usuarios
-tipoDocumentoCaracteristica.belongsTo(ms_usuarios, {
-  foreignKey: 'ID_USUARIO',
-  targetKey: 'ID_USUARIO',
-  as: 'usuario'
-});
 // Característica dinámica ↔ catálogo de características
 tipoDocumentoCaracteristica.belongsTo(caracteristica, {
   foreignKey: 'ID_CARACTERISTICA',
@@ -112,14 +103,13 @@ tipoDocumentoCaracteristica.belongsTo(caracteristica, {
   as: 'def'
 });
 // Característica dinámica ↔ detalle y versiones
-tipoDocumentoCaracteristica.hasMany(documentoDet, {
-  foreignKey: 'ID_TIPO_DOCUMENTO_CARACTERISTICA',
-  as: 'detallesCaracteristica'
-});
+
 tipoDocumentoCaracteristica.hasMany(documentoVersiones, {
   foreignKey: 'ID_TIPO_DOCUMENTO_CARACTERISTICA',
   as: 'versionesCaracteristica'
 });
+
+
 
 export {
   permisos,

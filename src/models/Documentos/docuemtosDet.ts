@@ -31,10 +31,7 @@ export const documentoDet = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    ID_TIPO_DOCUMENTO_CARACTERISTICA: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
+
     ID_CATEGORIA: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -86,11 +83,7 @@ documentoDet.associate = (models: any) => {
     targetKey: "ID_TIPO_ARCHIVO",
     as: "tipoArchivo",
   });
-  documentoDet.belongsTo(models.tipo_documento_caracteristica, {
-    foreignKey: "ID_TIPO_DOCUMENTO_CARACTERISTICA",
-    targetKey: "ID_TIPO_DOCUMENTO_CARACTERISTICA",
-    as: "caracteristica",
-  });
+
   documentoDet.belongsTo(models.categoria, {
     foreignKey: "ID_CATEGORIA",
     targetKey: "ID_CATEGORIA",
