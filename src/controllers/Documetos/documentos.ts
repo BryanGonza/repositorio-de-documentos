@@ -251,6 +251,38 @@ export const SubirDoc = async (req: Request, res: Response) => {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
   }
 };
+
+export const actualizarDocumentoDD = async (req: Request, res: Response) => {
+  const { ID_DOCUMENTO, NOMBRE, DESCRIPCION, ES_PUBLICO } = req.body;
+
+  // Validar que existan todos los datos
+  if (!ID_DOCUMENTO || !NOMBRE || DESCRIPCION === undefined || ES_PUBLICO === undefined) {
+    return res.status(400).json({ msg: "Faltan datos requeridos en el body" });
+  }
+
+  try {
+    await sequelize.query(
+      `CALL ActualizarDocumentoDD(:ID_DOCUMENTO, :NOMBRE, :DESCRIPCION, :ES_PUBLICO)`,
+      {
+        replacements: {
+          ID_DOCUMENTO,
+          NOMBRE,
+          DESCRIPCION,
+          ES_PUBLICO,
+        },
+      }
+    );
+
+    res.json({ msg: "Documento actualizado correctamente" });
+  } catch (error: any) {
+    console.error("Error al actualizar documento:", error);
+    res.status(500).json({
+      msg: "Error al actualizar documento",
+      error: error.message,
+    });
+  }
+};
+
 // dotenv.config();
 
 // const KEYFILEPATH = path.join(__dirname, "../credencialesGD.json");
@@ -650,6 +682,7 @@ export const getDocumentosPorUsuario = async (req: Request, res: Response) => {
         "ID_USUARIO",
         "ID_ESTADO",
         "NOMBRE",
+        "ID_TIPO_DOCUMENTO",
         "URL",
         "URl_DOW",
         "FECHA_SUBIDA",

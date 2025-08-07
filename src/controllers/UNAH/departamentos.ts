@@ -111,3 +111,38 @@ export const deleteDep = async (req: Request, res: Response) => {
     res.status(500).json({ msg });
   }
 };
+
+
+
+export const getDepFacultad = async (req: Request, res: Response) => {
+  // 1) Obtenemos y validamos el parámetro
+  const idParam = req.params.ID_DEPARTAMENTO;
+  const id = parseInt(idParam, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({ msg: 'ID de departamento inválido.' });
+  }
+
+  try {
+    // 2) Llamamos al SP pasando el parámetro
+    const result: any = await sequelize.query(
+      'CALL repositorio_documentos2_0.sp_get_departamento_facultad(:ID_DEPARTAMENTO);',
+      {
+        replacements: { ID_DEPARTAMENTO: id }
+      }
+    );
+
+    // 3) Verificamos que haya datos
+    if (!result || result.length === 0) {
+      return res.status(404).json({ msg: 'Departamento no encontrado.' });
+    }
+
+    // 4) Devolvemos el nombre del departamento y de la facultad
+    // result[0] tendrá { nombre_departamento, nombre_facultad }
+    res.json({ Detalle_Departamento_Facultad: result[0] });
+  } catch (error: any) {
+    console.error('Error al obtener detalle departamento-facultad:', error);
+    res.status(500).json({
+      msg: 'Error al ejecutar el procedimiento almacenado.'
+    });
+  }
+};

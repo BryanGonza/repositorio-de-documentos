@@ -261,11 +261,14 @@ export const getCaracteristicasPorTipoDocumentoSP = async (req: Request, res: Re
       const idCar = r.ID_CARACTERISTICA ?? r.id_caracteristica;
       const idTipo = r.ID_TIPO_DOCUMENTO ?? r.id_tipo_documento;
       const nombre = r.CARACTERISTICA ?? r.caracteristica ?? '';
+      const nombreTipo = r.NOMBRE_TIPO_CARACTERISTICA     ?? r.nombre_tipo_caracteristica ?? '';
       return {
         ID_TIPO_DOCUMENTO_CARACTERISTICA: idTpdc,
         ID_CARACTERISTICA: idCar,
         ID_TIPO_DOCUMENTO: idTipo,
-        def: { CARACTERISTICA: nombre }
+        def: { CARACTERISTICA: nombre,
+           NOMBRE_TIPO_CARACTERISTICA: nombreTipo
+         }
       };
     });
 
