@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+// import  { SubirDoc} from "../controllers/documentos";
+const documetos_midd_1 = require("../middlewares/documetos.midd");
+const documentos_1 = require("../controllers/Documetos/documentos");
+const validarPermiso_1 = require("./validarPermiso");
+const validartoken_1 = require("../routes/validartoken");
+const router = (0, express_1.Router)();
+router.post("/api/Documentos/subirDc", documetos_midd_1.cargas, documentos_1.SubirDoc);
+router.get("/api/Documentos/MostrarDocuemtos", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('consulta', 'DOCUMENTO'), documetos_midd_1.requireAuth, documentos_1.getDocumetos);
+router.delete("/api/Documentos/EliminarDocumento/:idDocumento", validartoken_1.validarTokenConPermisos, (0, validarPermiso_1.validarPermiso)('eliminacion', 'DOCUMENTO'), documentos_1.EliminarDoc);
+router.get("/api/Documentos/correo/:idUsuario", validartoken_1.validarTokenConPermisos, documentos_1.getCorreoUsuario);
+router.get("/api/Documentos/DocUser/:idUsuario", documentos_1.getDocumentosPorUsuario);
+router.put("/api/Documentos/Actualizar", documentos_1.actualizarDocumentoDD);
+router.get("/api/Documentos/getDocumentoDetalle/:id", documentos_1.getDocumentoDetalle);
+exports.default = router;

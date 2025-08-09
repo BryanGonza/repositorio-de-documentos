@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const permisos_1 = require("../controllers/permisos");
+const router = (0, express_1.Router)();
+router.post("/api/permisos/createPermiso", permisos_1.createPermiso);
+router.get("/api/permisos/getPermisos", permisos_1.getPermisos);
+router.put("/api/permisos/updatePermiso", permisos_1.updatePermiso);
+router.delete("/api/permisos/deletePermiso", permisos_1.deletePermiso);
+exports.default = router;
