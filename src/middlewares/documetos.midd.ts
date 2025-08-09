@@ -1,6 +1,7 @@
 
 import { Request, Response, NextFunction } from "express";
 
+
 import multer from "multer";
 import { google } from "googleapis";
 import dotenv from "dotenv";
@@ -15,7 +16,8 @@ const SCOPES = ["https://www.googleapis.com/auth/drive"];
 const auth = new google.auth.GoogleAuth({ keyFile: KEYFILEPATH, scopes: SCOPES });
 const drive = google.drive({ version: "v3", auth });
 
-// Configuración mejorada de Multer
+
+// Configuración  de Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = 'uploads/';
@@ -30,17 +32,36 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
-  storage: storage,
+// Tipos permitidos (MIME) y por extensión (fallback si el navegador manda 'octet-stream')
+const allowedMimes = [
+  'application/pdf',
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-powerpoint', // .ppt
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+  'image/jpeg',
+  'image/png',
+];
+
+const allowedExts = [
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png'
+];
+
+const upload = multer({
+  storage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB límite
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (allowedTypes.includes(file.mimetype)) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const okByMime = allowedMimes.includes(file.mimetype);
+    const okByExt = allowedExts.includes(ext);
+    if (okByMime || okByExt) {
       cb(null, true);
     } else {
-      cb(new Error('Tipo de archivo no permitido'));
+      cb(new Error(`Tipo de archivo no permitido (${file.mimetype || ext})`));
     }
   }
 });
@@ -135,7 +156,26 @@ export const subirDocumento = async (req: Request, res: Response) => {
     });
   }
 };
+import jwt from 'jsonwebtoken';
 
+
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  const h = req.headers.authorization;
+  if (!h?.startsWith('Bearer ')) return res.status(401).json({ msg: 'Falta token' });
+  const token = h.split(' ')[1];
+
+  try {
+    const payload: any = jwt.verify(token, process.env.Secret_key || 'Repositorio_Documentos_2025');
+    (req as any).user = {
+      id: payload.id,
+      departamento: payload.departamento,
+      rol: payload.rol,
+    };
+    next();
+  } catch {
+    return res.status(401).json({ msg: 'Token inválido' });
+  }
+};
 // import { Request, Response, NextFunction } from "express"; // Importar NextFunction
 // import multer from "multer";
 // import { google } from "googleapis";

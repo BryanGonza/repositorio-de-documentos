@@ -585,22 +585,42 @@ export const EliminarDoc = async (req: Request, res: Response) => {
 
 export const getDocumetos = async (req: Request, res: Response) => {
   try {
-    // Filtrar y ordenar documentos por fecha descendente (más recientes primero)
-    const ListDocume = await documentos.findAll({
-      where: {
-        ES_PUBLICO: 1,
-      },
-      order: [
-        ["FECHA_SUBIDA", "DESC"], // Ordenar por FECHA_SUBIDA en orden descendente
-      ],
-    });
+    const departamentoJwt = (req as any)?.user?.departamento; // viene del middleware/jwt
+    const idDepartamento = Number(req.query.idDepartamento ?? departamentoJwt);
 
-    res.json({ ListDocume });
+    if (Number.isFinite(idDepartamento)) {
+      const [rows]: any = await sequelize.query(
+        `
+        SELECT d.*
+        FROM tbl_documentos d
+        INNER JOIN tbl_usuarios u ON u.ID_USUARIO = d.ID_USUARIO
+        WHERE CAST(d.ES_PUBLICO AS UNSIGNED) = 1
+          AND u.ID_DEPARTAMENTO = :depto
+        ORDER BY d.FECHA_SUBIDA DESC
+        `,
+        { replacements: { depto: idDepartamento } }
+      );
+      return res.json({ ListDocume: rows });
+    } else {
+      // Fallback si no tenemos depto: solo públicos de cualquier depto (o podés devolver 400)
+      const [rows]: any = await sequelize.query(
+        `
+        SELECT d.*
+        FROM tbl_documentos d
+        WHERE CAST(d.ES_PUBLICO AS UNSIGNED) = 1
+        ORDER BY d.FECHA_SUBIDA DESC
+        `
+      );
+      return res.json({ ListDocume: rows });
+      // o: return res.status(400).json({ msg: 'No se pudo determinar el departamento' });
+    }
   } catch (error) {
     console.error("Error al obtener los documentos:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+
 // GET /api/documentos/:id
 export const getDocumentoDetalle = async (req: Request, res: Response) => {
 
