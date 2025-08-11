@@ -5,7 +5,7 @@ const TipoDocumentoCaracteristica_1 = require("../controllers/Documetos/TipoDocu
 const router = (0, express_1.Router)();
 router.post("/api/tipo_doc_caracteristica/createTipo_doc_cara", TipoDocumentoCaracteristica_1.insertDocumentoCaracteristica);
 router.delete("/api/tipo_doc_caracteristica/eliminar_doc_cara", TipoDocumentoCaracteristica_1.eliminarDocumentoCaracteristica);
-router.put("/api/tipo_doc_caracteristica/upd_doc_cara", TipoDocumentoCaracteristica_1.updateValorPredeterminado);
+router.put("/api/tipo_doc_caracteristica/upd_doc_cara", TipoDocumentoCaracteristica_1.updateTipoDocCaracteristica);
 router.get("/api/tipo_doc_caracteristica/get_doc_cara", TipoDocumentoCaracteristica_1.getDocumentoCaracteristicaCompleta);
 router.get("/api/tipo_doc_caracteristica/get_Tipo/:id_tipo_documento", TipoDocumentoCaracteristica_1.getCaracteristicasPorTipoDocumentoSP);
 router.get('/detalle-caracteristicas/:id_documento', TipoDocumentoCaracteristica_1.getDetalleCaracteristicasDocumento);

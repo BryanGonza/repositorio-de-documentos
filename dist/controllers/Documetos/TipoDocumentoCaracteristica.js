@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDetalleCaracteristicasDocumento = exports.getCaracteristicasPorTipoDocumentoSP = exports.getCaracteristicasPorTipoDocumento = exports.getDocumentoCaracteristicaCompleta = exports.updateValorPredeterminado = exports.eliminarDocumentoCaracteristica = exports.insertDocumentoCaracteristica = void 0;
+exports.getDetalleCaracteristicasDocumento = exports.getCaracteristicasPorTipoDocumentoSP = exports.getCaracteristicasPorTipoDocumento = exports.getDocumentoCaracteristicaCompleta = exports.updateTipoDocCaracteristica = exports.eliminarDocumentoCaracteristica = exports.insertDocumentoCaracteristica = void 0;
 const conexion_1 = __importDefault(require("../../database/conexion"));
 const sequelize_1 = require("sequelize");
 const models_1 = require("../../models");
@@ -110,53 +110,25 @@ const eliminarDocumentoCaracteristica = (req, res) => __awaiter(void 0, void 0, 
     }
 });
 exports.eliminarDocumentoCaracteristica = eliminarDocumentoCaracteristica;
-const updateValorPredeterminado = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
-    const { id_tipo_documento, id_caracteristica, nuevo_valor } = req.body;
-    try {
-        // Validación básica de parámetros
-        if (!id_tipo_documento || !id_caracteristica || nuevo_valor === undefined) {
-            return res.status(400).json({
-                success: false,
-                msg: 'Los parámetros id_tipo_documento, id_caracteristica y nuevo_valor son requeridos'
-            });
-        }
-        // Llamada al procedimiento almacenado
-        const [resultado] = yield conexion_1.default.query('CALL ActualiarValorPredeterminado(:id_tipo, :id_caract)', {
-            replacements: {
-                id_tipo: id_tipo_documento,
-                id_caract: id_caracteristica,
-            },
-            type: sequelize_1.QueryTypes.RAW
-        });
-        // Procesar la respuesta del procedimiento
-        const mensaje = ((_b = (_a = resultado === null || resultado === void 0 ? void 0 : resultado[0]) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.Resultado) || 'Valor predeterminado actualizado correctamente';
-        res.json({
-            success: true,
-            msg: mensaje,
-            data: {
-                ID_TIPO_DOCUMENTO: id_tipo_documento,
-                ID_CARACTERISTICA: id_caracteristica,
-            }
-        });
+// PUT /api/tipo_doc_caracteristica/upd_doc_cara
+const updateTipoDocCaracteristica = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const { id_tipo_documento, id_caracteristica_actual, id_caracteristica_nueva } = req.body;
+    if (!id_tipo_documento || !id_caracteristica_actual || !id_caracteristica_nueva) {
+        return res.status(400).json({ success: false, msg: 'Faltan parámetros' });
     }
-    catch (error) {
-        // Manejo específico para errores de SQL
-        if (error instanceof Error && 'parent' in error && ((_c = error.parent) === null || _c === void 0 ? void 0 : _c.code) === 'ER_SIGNAL_EXCEPTION') {
-            return res.status(400).json({
-                success: false,
-                msg: error.message.replace('ER_SIGNAL_EXCEPTION: ', '')
-            });
+    try {
+        yield conexion_1.default.query('CALL ActualizarTipoDocCaracteristica(:id_tipo, :id_act, :id_nueva)', { replacements: { id_tipo: id_tipo_documento, id_act: id_caracteristica_actual, id_nueva: id_caracteristica_nueva } });
+        res.json({ success: true, msg: 'Característica actualizada correctamente' });
+    }
+    catch (e) {
+        if (((_a = e === null || e === void 0 ? void 0 : e.parent) === null || _a === void 0 ? void 0 : _a.code) === 'ER_SIGNAL_EXCEPTION') {
+            return res.status(400).json({ success: false, msg: String(e.message).replace('ER_SIGNAL_EXCEPTION: ', '') });
         }
-        // Manejo genérico de errores
-        res.status(500).json({
-            success: false,
-            msg: 'Error al actualizar el valor predeterminado',
-            error: error instanceof Error ? error.message : 'Error desconocido'
-        });
+        res.status(500).json({ success: false, msg: 'Error al actualizar', error: (_b = e === null || e === void 0 ? void 0 : e.message) !== null && _b !== void 0 ? _b : 'Error desconocido' });
     }
 });
-exports.updateValorPredeterminado = updateValorPredeterminado;
+exports.updateTipoDocCaracteristica = updateTipoDocCaracteristica;
 const getDocumentoCaracteristicaCompleta = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const Listado_DocumentoCaracteristica = yield models_1.tipoDocumentoCaracteristica.findAll({

@@ -118,60 +118,24 @@ export const eliminarDocumentoCaracteristica = async (req: Request, res: Respons
     }
 };
 
-export const updateValorPredeterminado = async (req: Request, res: Response) => {
-    const { id_tipo_documento, id_caracteristica, nuevo_valor } = req.body;
-
-    try {
-        // Validación básica de parámetros
-        if (!id_tipo_documento || !id_caracteristica || nuevo_valor === undefined) {
-            return res.status(400).json({
-                success: false,
-                msg: 'Los parámetros id_tipo_documento, id_caracteristica y nuevo_valor son requeridos'
-            });
-        }
-
-        // Llamada al procedimiento almacenado
-        const [resultado] = await sequelize.query(
-            'CALL ActualiarValorPredeterminado(:id_tipo, :id_caract)',
-            {
-                replacements: {
-                    id_tipo: id_tipo_documento,
-                    id_caract: id_caracteristica,
-                   
-                },
-                type: QueryTypes.RAW
-            }
-        );
-
-        // Procesar la respuesta del procedimiento
-        const mensaje = resultado?.[0]?.[0]?.Resultado || 'Valor predeterminado actualizado correctamente';
-
-        res.json({
-            success: true,
-            msg: mensaje,
-            data: {
-                ID_TIPO_DOCUMENTO: id_tipo_documento,
-                ID_CARACTERISTICA: id_caracteristica,
-              
-            }
-        });
-
-    } catch (error) {
-        // Manejo específico para errores de SQL
-        if (error instanceof Error && 'parent' in error && (error as any).parent?.code === 'ER_SIGNAL_EXCEPTION') {
-            return res.status(400).json({
-                success: false,
-                msg: error.message.replace('ER_SIGNAL_EXCEPTION: ', '')
-            });
-        }
-
-        // Manejo genérico de errores
-        res.status(500).json({
-            success: false,
-            msg: 'Error al actualizar el valor predeterminado',
-            error: error instanceof Error ? error.message : 'Error desconocido'
-        });
+// PUT /api/tipo_doc_caracteristica/upd_doc_cara
+export const updateTipoDocCaracteristica = async (req: Request, res: Response) => {
+  const { id_tipo_documento, id_caracteristica_actual, id_caracteristica_nueva } = req.body;
+  if (!id_tipo_documento || !id_caracteristica_actual || !id_caracteristica_nueva) {
+    return res.status(400).json({ success:false, msg:'Faltan parámetros' });
+  }
+  try {
+    await sequelize.query(
+      'CALL ActualizarTipoDocCaracteristica(:id_tipo, :id_act, :id_nueva)',
+      { replacements: { id_tipo: id_tipo_documento, id_act: id_caracteristica_actual, id_nueva: id_caracteristica_nueva } }
+    );
+    res.json({ success:true, msg:'Característica actualizada correctamente' });
+  } catch (e:any) {
+    if (e?.parent?.code === 'ER_SIGNAL_EXCEPTION') {
+      return res.status(400).json({ success:false, msg: String(e.message).replace('ER_SIGNAL_EXCEPTION: ', '') });
     }
+    res.status(500).json({ success:false, msg:'Error al actualizar', error:e?.message ?? 'Error desconocido' });
+  }
 };
 
 export const getDocumentoCaracteristicaCompleta = async (req: Request, res: Response) => {
