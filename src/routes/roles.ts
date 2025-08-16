@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createRol, getRoles, updateRoles, deleteroles } from "../controllers/roles";
+import { createRol, getRoles, updateRoles, deleteroles } from "../controllers/Roles";
 import { getObjetosConPermisos } from "../controllers/objetos";
 import { validarPermiso } from "./validarPermiso";
 import validarTokenConPermisos from "./validartoken";
