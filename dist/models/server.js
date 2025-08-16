@@ -62,12 +62,36 @@ const TipoDocCaracteristica_1 = require("./Documentos/TipoDocCaracteristica");
 const DocumetoCaracteristica_1 = require("./Documentos/DocumetoCaracteristica");
 class Server {
     constructor(port) {
+        this.allowedOrigins = [
+            "http://localhost:4200",
+            `http://${process.env.PUBLIC_IP || "3.18.215.239"}:4200`,
+            process.env.FRONTEND_URL || "https://tu-dominio.com",
+        ];
         this.app = (0, express_1.default)();
         this.port = port;
         this.middlewares();
         this.router();
         this.DBconex();
         this.listen();
+    }
+    middlewares() {
+        // Confía en proxy si usas Nginx/ALB
+        this.app.set("trust proxy", 1);
+        // CORS con lista blanca + permitir curl/Postman (sin origin)
+        this.app.use((0, cors_1.default)({
+            origin: (origin, cb) => {
+                if (!origin)
+                    return cb(null, true); // Postman/curl
+                if (this.allowedOrigins.includes(origin))
+                    return cb(null, true);
+                return cb(new Error("CORS no permitido"), false);
+            },
+            credentials: true,
+        }));
+        // JSON (subir límite si mandas payloads grandes)
+        this.app.use(express_1.default.json({ limit: "10mb" }));
+        // Si recibís formularios:
+        // this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
     }
     router() {
         //2. Use correctamente
@@ -92,17 +116,10 @@ class Server {
         this.app.use(TipoDocumetoCaracteristica_1.default);
         this.app.use(Reporte_1.default);
     }
-    middlewares() {
-        // Configurar CORS para aceptar solicitudes desde http://localhost:4200
-        this.app.use((0, cors_1.default)({
-            origin: "http://localhost:4200",
-        }));
-        // Permitir que el servidor entienda el JSON
-        this.app.use(express_1.default.json());
-    }
     listen() {
-        this.app.listen(this.port, () => {
-            console.log("Se esta jecutando; " + this.port);
+        const HOST = process.env.HOST || "0.0.0.0";
+        this.app.listen(this.port, HOST, () => {
+            console.log(`Se está ejecutando en http://${HOST}:${this.port}`);
         });
     }
     DBconex() {

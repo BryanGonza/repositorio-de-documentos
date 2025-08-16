@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> 421f3d2379d885e91410d9e83ebbbc659c5e403b
 import { Router } from "express";
 import { createCategoria, getCategoria, updateCategoria, deleteCategoria } from "../controllers/Documetos/categoria";
 import { validarPermiso } from "./validarPermiso";

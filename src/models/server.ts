@@ -63,7 +63,11 @@ import dotenv from "dotenv"
 class Server {
   private app: Application;
   private port: number;
-
+private readonly allowedOrigins: string[] = [
+    "http://localhost:4200",
+    `http://${process.env.PUBLIC_IP || "3.18.215.239"}:4200`,
+    process.env.FRONTEND_URL || "https://tu-dominio.com",
+  ];
   constructor(port: number) {
     this.app = express();
     this.port = port;
@@ -73,7 +77,28 @@ class Server {
     this.listen();
     
   }
-  
+   private middlewares() {
+    // Confía en proxy si usas Nginx/ALB
+    this.app.set("trust proxy", 1);
+
+    // CORS con lista blanca + permitir curl/Postman (sin origin)
+    this.app.use(
+      cors({
+        origin: (origin, cb) => {
+          if (!origin) return cb(null, true); // Postman/curl
+          if (this.allowedOrigins.includes(origin)) return cb(null, true);
+          return cb(new Error("CORS no permitido"), false);
+        },
+        credentials: true,
+      })
+    );
+
+    // JSON (subir límite si mandas payloads grandes)
+    this.app.use(express.json({ limit: "10mb" }));
+    // Si recibís formularios:
+    // this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+  }
+
   router() {
     //2. Use correctamente
     this.app.use(rEstado);
@@ -104,23 +129,14 @@ class Server {
 
   }
 
-  middlewares() {
-    // Configurar CORS para aceptar solicitudes desde http://localhost:4200
-    this.app.use(
-      cors({
-        origin: "http://localhost:4200",
-      })
-    );
 
-    // Permitir que el servidor entienda el JSON
-    this.app.use(express.json());
-  }
-  
-  listen() {
-    this.app.listen(this.port, () => {
-      console.log("Se esta jecutando; " + this.port);
+    private listen() {
+    const HOST = process.env.HOST || "0.0.0.0";
+    this.app.listen(this.port, HOST, () => {
+      console.log(`Se está ejecutando en http://${HOST}:${this.port}`);
     });
   }
+
 
   async DBconex() {
     try {
