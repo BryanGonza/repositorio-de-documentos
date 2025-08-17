@@ -470,7 +470,7 @@ const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, fun
         <li>Introduzca el siguiente código de recuperación en la página correspondiente:</li>
         <p><strong>Código de Recuperación: ${code}</strong></p>
         <li>Haga clic en el siguiente enlace para acceder a la página de verificación:<br>
-        <a href="http://localhost:4200/ResetContrasena">http://localhost:4200/ResetContrasena</a></li>
+        <a href="http://3.18.215.239:4200/ResetContrasena">http://3.18.215.239:4200/ResetContrasena</a></li>
       </ol>
       
       <p>Tenga en cuenta que este <strong>código expira en 15 minutos.</strong></p>
