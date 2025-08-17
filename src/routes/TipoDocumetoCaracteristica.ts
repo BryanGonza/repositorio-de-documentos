@@ -10,6 +10,6 @@ router.delete("/api/tipo_doc_caracteristica/eliminar_doc_cara", eliminarDocument
 router.put("/api/tipo_doc_caracteristica/upd_doc_cara", updateTipoDocCaracteristica);
 router.get("/api/tipo_doc_caracteristica/get_doc_cara", getDocumentoCaracteristicaCompleta);
 router.get("/api/tipo_doc_caracteristica/get_Tipo/:id_tipo_documento", getCaracteristicasPorTipoDocumentoSP);
-router.get('/detalle-caracteristicas/:id_documento', getDetalleCaracteristicasDocumento);
+router.get('/api/detalle-caracteristicas/:id_documento', getDetalleCaracteristicasDocumento);
 
 export default router;
