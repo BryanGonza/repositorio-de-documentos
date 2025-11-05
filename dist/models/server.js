@@ -64,7 +64,7 @@ class Server {
     constructor(port) {
         this.allowedOrigins = [
             "http://localhost:4200",
-            `http://${process.env.PUBLIC_IP || "3.18.223.129"}:4200`,
+            `http://${process.env.PUBLIC_IP || "3.20.85.74"}:4200`,
             process.env.FRONTEND_URL || "https://tu-dominio.com",
         ];
         this.app = (0, express_1.default)();
