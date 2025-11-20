@@ -65,7 +65,7 @@ class Server {
   private port: number;
 private readonly allowedOrigins: string[] = [
     "http://localhost:4200",
-    `http://${process.env.PUBLIC_IP || "10.10.63.205"}:8080`,
+    `http://${process.env.PUBLIC_IP || "10.10.63.205"}:4200`,
     process.env.FRONTEND_URL || "https://tu-dominio.com",
   ];
   constructor(port: number) {
